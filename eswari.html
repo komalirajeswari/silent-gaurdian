@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Guardian Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    
+    <!-- Leaflet Maps CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- TensorFlow.js & Toxicity Model -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/toxicity"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#003f74",
+                        "primary-fixed": "#e1e0ff",
+                        "tertiary-fixed-dim": "#a4c9ff",
+                        "surface-tint": "#4f54b4",
+                        "surface-container-low": "#f6f3f2",
+                        "outline-variant": "#c7c5d4",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#410006",
+                        "on-secondary-container": "#6d0010",
+                        "surface-dim": "#dcd9d9",
+                        "surface": "#fcf9f8",
+                        "surface-bright": "#fcf9f8",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "surface-variant": "#e5e2e1",
+                        "secondary-fixed-dim": "#ffb3b0",
+                        "surface-container": "#f0eded",
+                        "on-primary-fixed": "#04006d",
+                        "on-secondary-fixed-variant": "#8c1520",
+                        "outline": "#777683",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#eae7e7",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-background": "#1c1b1b",
+                        "on-primary-container": "#9da1ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "primary": "#15157d",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#c0c1ff",
+                        "background": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004883",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#6aacff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001c39",
+                        "tertiary": "#00294f",
+                        "tertiary-fixed": "#d4e3ff",
+                        "on-surface-variant": "#464652",
+                        "on-surface": "#1c1b1b",
+                        "secondary": "#ae2f34",
+                        "primary-container": "#2e3192",
+                        "on-primary-fixed-variant": "#373a9b",
+                        "secondary-container": "#ff6b6b",
+                        "inverse-on-surface": "#f3f0ef",
+                        "secondary-fixed": "#ffdad8",
+                        "on-primary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "stack-sm": "8px",
+                        "container-max-width": "1280px",
+                        "gutter": "24px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "unit": "8px",
+                        "stack-md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": [
+                            "Manrope"
+                        ],
+                        "body-lg": [
+                            "Manrope"
+                        ],
+                        "label-md": [
+                            "Manrope"
+                        ],
+                        "headline-lg": [
+                            "Manrope"
+                        ],
+                        "title-lg": [
+                            "Manrope"
+                        ],
+                        "body-md": [
+                            "Manrope"
+                        ],
+                        "display-lg": [
+                            "Manrope"
+                        ],
+                        "label-sm": [
+                            "Manrope"
+                        ]
+                    },
+                    "fontSize": {
+                        "headline-md": [
+                            "24px",
+                            {
+                                "lineHeight": "32px",
+                                "fontWeight": "700"
+                            }
+                        ],
+                        "body-lg": [
+                            "18px",
+                            {
+                                "lineHeight": "28px",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "label-md": [
+                            "14px",
+                            {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "headline-lg": [
+                            "32px",
+                            {
+                                "lineHeight": "40px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "700"
+                            }
+                        ],
+                        "title-lg": [
+                            "20px",
+                            {
+                                "lineHeight": "28px",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "body-md": [
+                            "16px",
+                            {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "display-lg": [
+                            "48px",
+                            {
+                                "lineHeight": "56px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "800"
+                            }
+                        ],
+                        "label-sm": [
+                            "12px",
+                            {
+                                "lineHeight": "16px",
+                                "fontWeight": "700"
+                            }
+                        ]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-background min-h-screen flex flex-col md:flex-row">
+    <!-- SideNavBar (Desktop) -->
+    <nav
+        class="hidden md:flex flex-col h-full py-stack-lg bg-surface-container-lowest border-r border-outline-variant shadow-sm fixed left-0 top-0 w-64 z-40">
+        <div class="px-margin-mobile mb-margin-desktop">
+            <h1 class="font-display-lg text-headline-md text-primary">Guardian</h1>
+            <p class="font-label-md text-label-md text-on-surface-variant mt-stack-sm">Guardian AI</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant">System Status: Secured</p>
+        </div>
+        <div class="flex-1 px-unit space-y-unit">
+            <a class="flex items-center space-x-stack-md bg-primary-container text-on-primary-container rounded-lg mx-2 px-4 py-3 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
+                href="#">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                <span class="font-label-md text-label-md">Dashboard</span>
+            </a>
+            <a class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
+                href="#">
+                <span class="material-symbols-outlined">location_searching</span>
+                <span class="font-label-md text-label-md">Live Track</span>
+            </a>
+            <a id="btn-fakecall-desktop" class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20 cursor-pointer">
+                <span class="material-symbols-outlined">phone_forwarded</span>
+                <span class="font-label-md text-label-md">Fake Call</span>
+            </a>
+            <a id="btn-admin" class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20 cursor-pointer">
+                <span class="material-symbols-outlined">admin_panel_settings</span>
+                <span class="font-label-md text-label-md">Alert History</span>
+            </a>
+        </div>
+        <div class="px-margin-mobile mt-auto mb-stack-lg">
+            <button id="btn-sos-desktop"
+                class="w-full bg-error text-on-error font-label-md text-label-md py-stack-md rounded-lg flex items-center justify-center space-x-stack-sm shadow-md transition-all active:scale-95">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency</span>
+                <span>EMERGENCY SOS</span>
+            </button>
+        </div>
+        <div class="px-unit space-y-unit">
+            <a class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
+                href="#">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="font-label-md text-label-md">Settings</span>
+            </a>
+            <a class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
+                href="#">
+                <span class="material-symbols-outlined">contact_support</span>
+                <span class="font-label-md text-label-md">Support</span>
+            </a>
+        </div>
+    </nav>
+    <!-- Main Content Canvas -->
+    <main class="flex-1 md:ml-64 pb-24 md:pb-0 relative min-h-screen">
+        <!-- TopAppBar (Mobile & Desktop Header) -->
+        <header
+            class="fixed top-0 w-full md:w-[calc(100%-16rem)] z-30 bg-surface/90 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16">
+            <div class="md:hidden">
+                <span
+                    class="font-display-lg text-headline-md font-extrabold text-primary tracking-tight">Guardian</span>
+            </div>
+            <div class="hidden md:block">
+                <h2 class="font-headline-md text-headline-md text-on-surface">Dashboard</h2>
+            </div>
+            <div class="flex items-center space-x-stack-md">
+                <button
+                    class="p-2 text-on-surface-variant hover:bg-surface-variant transition-colors rounded-full scale-95 active:opacity-80 transition-all">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+                <button
+                    class="p-2 text-primary font-bold hover:bg-surface-variant transition-colors rounded-full scale-95 active:opacity-80 transition-all">
+                    <span class="material-symbols-outlined"
+                        style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+                </button>
+                <div
+                    class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant ml-stack-sm">
+                    <img alt="User profile settings" class="w-full h-full object-cover"
+                        data-alt="A portrait of a confident person serving as a user profile avatar. The lighting is soft and neutral, fitting the modern, calm authority visual style of the Guardian application. The background is a subtle dark tone matching the interface surface. The overall mood is reliable and approachable."
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu2TTVlMNxeMqhRxwPxCpVxFt-ya5K7f-xpsJ7tvU4xoS5go3Iyk_CLUV8CxRdtDqgaCOhkLAp2JWTc3payDYvoSSFpt-twbR8kzSaGH7_xgGiKR5rlfhg5ZIQ2-qVyCRWbTOBEVIpcyAQJrl_2iYjjJ0N-jC257_ILK1MZYHtyDizene8aN5_Bu6gKGqIKuBVAEjAdIPsLjuqNLbArQfYCA2EEjsogi3RqHALtf_IDvxpHd8479wpyAd0PgSdbPKOkJXOS_P1739r" />
+                </div>
+            </div>
+        </header>
+        <!-- Dashboard Content -->
+        <div class="pt-24 px-margin-mobile md:px-margin-desktop max-w-[1200px] mx-auto space-y-stack-lg">
+            <!-- Hero / Map Section (Bento Grid Style) -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-lg">
+                <!-- Map Card -->
+                <div
+                    class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative h-[400px] shadow-sm">
+                    <div class="absolute inset-0 bg-surface/80 z-10 flex items-center justify-center backdrop-blur-sm">
+                        <!-- Simulated Map Image -->
+                        <!-- Embedded Map -->
+                        <div id="live-map" class="absolute inset-0 w-full h-full z-0"></div>
+                        <div class="z-20 w-full h-full p-stack-md flex flex-col justify-between pointer-events-none">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="bg-surface/90 backdrop-blur-md px-4 py-2 rounded-lg border border-outline-variant shadow-sm flex items-center space-x-stack-sm">
+                                    <span class="material-symbols-outlined text-primary text-sm">my_location</span>
+                                    <span class="font-label-sm text-label-sm text-on-surface">Tracking Active</span>
+                                </div>
+                                <div
+                                    class="bg-surface/90 backdrop-blur-md px-4 py-2 rounded-lg border border-outline-variant shadow-sm flex items-center space-x-stack-sm">
+                                    <span class="material-symbols-outlined text-secondary text-sm">wifi_tethering</span>
+                                    <span class="font-label-sm text-label-sm text-on-surface">Signal Strong</span>
+                                </div>
+                            </div>
+                            <!-- Safe Zone Indicator on Map -->
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                <div
+                                    class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center relative">
+                                    <div class="absolute inset-0 rounded-full border border-primary/30"></div>
+                                    <div class="w-4 h-4 bg-primary rounded-full shadow-[0_0_10px_rgba(46,49,146,0.5)]">
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-surface-container/90 backdrop-blur-lg p-stack-md rounded-xl border border-outline-variant flex items-center justify-between shadow-sm">
+                                <div>
+                                    <h3 class="font-label-md text-label-md text-on-surface">Current Location</h3>
+                                    <p class="font-body-md text-body-md text-on-surface-variant">42.3601° N, 71.0589° W
+                                    </p>
+                                </div>
+                                <button class="p-2 bg-primary-container text-on-primary-container rounded-lg">
+                                    <span class="material-symbols-outlined">directions</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Column (AI & Toggles) -->
+                <div class="space-y-stack-lg flex flex-col justify-between">
+                    <!-- Risk AI Widget -->
+                    <div
+                        class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-stack-lg relative overflow-hidden flex-1">
+                        <div class="absolute top-0 right-0 p-4 opacity-5">
+                            <span class="material-symbols-outlined text-6xl">psychology</span>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="flex items-center space-x-stack-sm mb-stack-md">
+                                <span class="material-symbols-outlined text-primary">psychology</span>
+                                <h3 class="font-headline-md text-headline-md text-on-surface">Risk AI</h3>
+                            </div>
+                            <div class="flex items-center space-x-stack-md mb-stack-lg">
+                                <div
+                                    class="w-12 h-12 rounded-full bg-primary-container/20 flex items-center justify-center border border-primary/10">
+                                    <span class="material-symbols-outlined text-primary"
+                                        style="font-variation-settings: 'FILL' 1;">shield</span>
+                                </div>
+                                <div>
+                                    <p id="risk-level-text" class="font-label-md text-label-md text-primary">Low Risk</p>
+                                    <p id="risk-reason-text" class="font-body-md text-body-md text-on-surface-variant">Area looks calm.</p>
+                                </div>
+                            </div>
+                            <div class="space-y-stack-sm">
+                                <div class="flex justify-between items-center bg-surface-container p-2 rounded-lg">
+                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Crowd
+                                        Density</span>
+                                    <span class="font-label-sm text-label-sm text-on-surface">Low</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-surface-container p-2 rounded-lg">
+                                    <span class="font-label-sm text-label-sm text-on-surface-variant">Lighting</span>
+                                    <span class="font-label-sm text-label-sm text-on-surface">Good</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Quick Toggles -->
+                    <div class="grid grid-cols-2 gap-stack-sm">
+                        <div id="btn-voice-trigger"
+                            class="bg-surface-container-lowest border border-outline-variant shadow-sm p-stack-md rounded-xl flex flex-col items-center justify-center text-center space-y-stack-sm cursor-pointer hover:bg-surface-variant transition-colors">
+                            <span class="material-symbols-outlined text-secondary"
+                                style="font-variation-settings: 'FILL' 1;">record_voice_over</span>
+                            <span class="font-label-md text-label-md text-on-surface">Voice Trigger</span>
+                            <div class="w-8 h-4 bg-primary rounded-full relative">
+                                <div class="absolute right-0.5 top-0.5 w-3 h-3 bg-white rounded-full"></div>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-surface-container-lowest border border-outline-variant shadow-sm p-stack-md rounded-xl flex flex-col items-center justify-center text-center space-y-stack-sm cursor-pointer hover:bg-surface-variant transition-colors">
+                            <span class="material-symbols-outlined text-primary"
+                                style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+                            <span class="font-label-md text-label-md text-on-surface">Guardian Mode</span>
+                            <div class="w-8 h-4 bg-surface-variant rounded-full relative">
+                                <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-outline rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom Section (Alerts & Contacts) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-stack-lg">
+                <!-- Recent Alerts -->
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-stack-lg">
+                    <div class="flex items-center justify-between mb-stack-md">
+                        <div class="flex items-center space-x-stack-sm">
+                            <span class="material-symbols-outlined text-on-surface">campaign</span>
+                            <h3 class="font-headline-md text-headline-md text-on-surface">Recent Alerts</h3>
+                        </div>
+                        <button class="text-primary font-label-sm text-label-sm">View All</button>
+                    </div>
+                    <div class="space-y-stack-sm">
+                        <div
+                            class="bg-surface-container p-stack-md rounded-lg border border-outline-variant flex items-start space-x-stack-md">
+                            <div
+                                class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="material-symbols-outlined text-error text-sm">warning</span>
+                            </div>
+                            <div>
+                                <p class="font-label-md text-label-md text-on-surface">Road Closure Ahead</p>
+                                <p class="font-body-md text-body-md text-on-surface-variant text-sm">Community report:
+                                    Main St blocked due to accident. 2 mins ago.</p>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-surface-container p-stack-md rounded-lg border border-outline-variant flex items-start space-x-stack-md">
+                            <div
+                                class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="material-symbols-outlined text-secondary text-sm">info</span>
+                            </div>
+                            <div>
+                                <p class="font-label-md text-label-md text-on-surface">Weather Advisory</p>
+                                <p class="font-body-md text-body-md text-on-surface-variant text-sm">Heavy rain expected
+                                    in your area in 15 mins.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Emergency Contacts -->
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-stack-lg">
+                    <div class="flex items-center justify-between mb-stack-md">
+                        <div class="flex items-center space-x-stack-sm">
+                            <span class="material-symbols-outlined text-on-surface">group</span>
+                            <h3 class="font-headline-md text-headline-md text-on-surface">Active Contacts</h3>
+                        </div>
+                        <button class="text-primary font-label-sm text-label-sm">Manage</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-stack-sm">
+                        <div
+                            class="bg-surface-container p-stack-md rounded-lg border border-outline-variant flex items-center space-x-stack-md">
+                            <div class="w-12 h-12 rounded-full overflow-hidden border border-primary/30 relative">
+                                <img alt="Contact" class="w-full h-full object-cover"
+                                    data-alt="A small portrait of a smiling woman used as a contact icon. The image is cropped in a circle. The lighting is warm and reassuring, fitting the concept of a trusted emergency contact in the Guardian app's dark mode environment."
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCxEwrDkWfwDrjdr1WffGW2JygPwa9bRCYARfv32-f0e83pKfHInd48qw5aN3uAd1gPn9XccyVrYrVM3jbawX4aZZwQRESzYw9f9meYAqZ8Vboid8yoTUPIyY-lYc7ZuqUbQXRohmk2xzfLO9ZfWD0_wLqoYWxqXRmO6oWPSlXOYnRqgfUdsHJzFkob4QaQhPev1W6uD02NKy2KyFzDS-xZ4Wp3F2AUJ99mUCqA2oP4UzUg-I21_zL_hofa9oAfmRJjOsIIMCgGymR" />
+                                <div
+                                    class="absolute bottom-0 right-0 w-3 h-3 bg-primary rounded-full border-2 border-surface">
+                                </div>
+                            </div>
+                            <div>
+                                <p class="font-label-md text-label-md text-on-surface">Sarah M.</p>
+                                <p class="font-label-sm text-label-sm text-primary">Guardian</p>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-surface-container p-stack-md rounded-lg border border-outline-variant flex items-center space-x-stack-md">
+                            <div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant">
+                                <img alt="Contact" class="w-full h-full object-cover"
+                                    data-alt="A small portrait of a professional man used as a contact icon. The image is cropped in a circle. The background is muted, and the expression is calm and attentive, aligning with the reliable and secure aesthetic of the Guardian platform."
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuANunkFMs4G4EWiBFrYW1qFhYR4s1tx-Xl3tLuBjzkx3DzcruiA7-Myjl_mUGyuP-iNG9uKSqexNec3PVninydE23VTDM8-PTXce5m9k1xoJj72gcBdGlKe8AK_IAzBzkbDwrKFX7oM2ViCXFRKYOPvlw3zz8_IUeEfB-BZOoiHdu0xjxxXDTE42xbY1qtJNj5bjsx_uRQTz0ScUdvwX-yUJATOtw42zYPlV9nflwcse05ekkz0oBGxGvpMHgHhms8TJp5uLzUdCRrs" />
+                            </div>
+                            <div>
+                                <p class="font-label-md text-label-md text-on-surface">David K.</p>
+                                <p class="font-label-sm text-label-sm text-on-surface-variant">Notified</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Mobile Prominent SOS (Only visible on Mobile as per typical mobile layouts) -->
+            <div class="md:hidden flex justify-center py-stack-lg">
+                <button id="btn-sos-mobile"
+                    class="w-48 h-48 rounded-full bg-error flex flex-col items-center justify-center shadow-lg border-4 border-error-container relative overflow-hidden transition-all active:scale-95">
+                    <div class="absolute inset-0 bg-white/10 rounded-full"></div>
+                    <span class="material-symbols-outlined text-on-error text-5xl mb-2"
+                        style="font-variation-settings: 'FILL' 1;">emergency</span>
+                    <span class="font-headline-lg-mobile text-headline-lg text-on-error tracking-widest">SOS</span>
+                </button>
+            </div>
+        </div>
+    </main>
+    <!-- BottomNavBar (Mobile Only) -->
+    <nav
+        class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 md:hidden bg-surface-container-lowest/90 backdrop-blur-xl border-t border-outline-variant shadow-lg rounded-t-xl">
+        <a class="flex flex-col items-center justify-center text-primary font-bold active:scale-90 transition-transform duration-200"
+            href="#">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+            <span class="font-label-sm text-label-sm mt-1">Home</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200"
+            href="#">
+            <span class="material-symbols-outlined">share_location</span>
+            <span class="font-label-sm text-label-sm mt-1">Location</span>
+        </a>
+        <a id="btn-sos-nav" class="flex flex-col items-center justify-center text-error hover:text-error/80 active:scale-90 transition-transform duration-200 transform -translate-y-4 cursor-pointer">
+            <div class="bg-error p-3 rounded-full border-4 border-surface shadow-md">
+                <span class="material-symbols-outlined text-on-error"
+                    style="font-variation-settings: 'FILL' 1;">emergency</span>
+            </div>
+            <span class="font-label-sm text-label-sm mt-1 text-on-surface-variant">SOS</span>
+        </a>
+        <a id="btn-fakecall-mobile" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200 cursor-pointer">
+            <span class="material-symbols-outlined">phone_callback</span>
+            <span class="font-label-sm text-label-sm mt-1">Fake Call</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200"
+            href="#">
+            <span class="material-symbols-outlined">notifications_active</span>
+            <span class="font-label-sm text-label-sm mt-1">Alerts</span>
+        </a>
+    </nav>
+    <!-- Fake Call Overlay -->
+    <div id="fake-call-overlay" class="hidden fixed inset-0 z-[100] bg-black text-white flex flex-col justify-between items-center py-16" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div class="text-center mt-10">
+            <h2 class="text-3xl font-normal text-gray-200">Mom</h2>
+            <p class="text-gray-400 mt-2 text-lg">Mobile</p>
+        </div>
+        <div class="flex justify-between w-full px-12 pb-10">
+            <div class="flex flex-col items-center cursor-pointer" id="decline-call">
+                <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center mb-2">
+                    <span class="material-symbols-outlined text-3xl">call_end</span>
+                </div>
+                <span class="text-sm">Decline</span>
+            </div>
+            <div class="flex flex-col items-center cursor-pointer" id="accept-call">
+                <div class="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mb-2 animate-bounce">
+                    <span class="material-symbols-outlined text-3xl">call</span>
+                </div>
+                <span class="text-sm">Accept</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOS Modal -->
+    <div id="sos-modal" class="hidden fixed inset-0 z-[90] bg-error/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-surface rounded-xl p-8 max-w-sm w-full text-center shadow-2xl border-4 border-error-container">
+            <span class="material-symbols-outlined text-error text-6xl mb-4 animate-pulse" style="font-variation-settings: 'FILL' 1;">emergency</span>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">EMERGENCY MODE</h2>
+            <p class="font-body-md text-on-surface-variant mb-6" id="sos-modal-text">Initiating response...</p>
+            <div class="space-y-3 mb-6 text-left" id="sos-actions-list">
+                <!-- Populated by JS -->
+            </div>
+            <button id="close-sos-modal" class="w-full py-3 bg-surface-variant text-on-surface rounded-lg font-bold hover:bg-surface-dim transition-colors mt-4">DISMISS</button>
+        </div>
+    </div>
+
+    <!-- Admin History Modal -->
+    <div id="admin-modal" class="hidden fixed inset-0 z-[90] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-surface-container-lowest rounded-xl p-8 max-w-2xl w-full shadow-2xl border border-outline-variant max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-headline-lg text-headline-md text-on-surface">Alert History Dashboard</h2>
+                <button id="close-admin-modal" class="p-2 bg-surface-variant rounded-full text-on-surface"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="overflow-y-auto flex-1 space-y-4" id="admin-history-list">
+                <!-- Populated by JS -->
+            </div>
+            <button id="clear-history" class="mt-6 py-2 text-error font-bold border border-error rounded-lg w-full hover:bg-error-container transition-colors">Clear History</button>
+        </div>
+    </div>
+
+    <!-- Hidden Audio Alarm -->
+    <audio id="siren-audio" src="https://assets.mixkit.co/sfx/preview/mixkit-warning-alarm-buzzer-991.mp3" loop></audio>
+
+    <!-- Scripts -->
+    <script>
+        // CONFIGURATION (Add your Telegram Bot info here)
+        const TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"; // e.g. "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+        const TELEGRAM_CHAT_ID = "YOUR_CHAT_ID_HERE";     // e.g. "123456789"
+
+        // Fake Call Logic
+        const fakeCallOverlay = document.getElementById('fake-call-overlay');
+        const showFakeCall = () => { fakeCallOverlay.classList.remove('hidden'); };
+        const hideFakeCall = () => { fakeCallOverlay.classList.add('hidden'); };
+        
+        document.getElementById('btn-fakecall-desktop')?.addEventListener('click', showFakeCall);
+        document.getElementById('btn-fakecall-mobile')?.addEventListener('click', showFakeCall);
+        document.getElementById('decline-call')?.addEventListener('click', hideFakeCall);
+        document.getElementById('accept-call')?.addEventListener('click', () => {
+            alert('Fake Call Accepted. Taking you to safety recording...');
+            hideFakeCall();
+        });
+
+        // Map & Location Initialization (Leaflet with Google Maps Tiles)
+        let map = L.map('live-map').setView([40.7128, -74.0060], 13);
+        L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '© Google Maps'
+        }).addTo(map);
+
+        let marker = null;
+        
+        // Function to simulate and plot risky hotspots and safe zones
+        const analyzeAreaRisk = (lat, lng) => {
+            const userLatLng = L.latLng(lat, lng);
+            let closestDist = Infinity;
+            
+            // Generate 3-5 random risky hotspots (Red Zones) within ~2km
+            const numSpots = Math.floor(Math.random() * 3) + 3;
+            for(let i=0; i<numSpots; i++) {
+                const offsetLat = (Math.random() - 0.5) * 0.03;
+                const offsetLng = (Math.random() - 0.5) * 0.03;
+                const spotLatLng = L.latLng(lat + offsetLat, lng + offsetLng);
+                
+                L.circle(spotLatLng, {
+                    color: '#dc3545', // Red
+                    fillColor: '#dc3545',
+                    fillOpacity: 0.25,
+                    weight: 2,
+                    radius: 300 // 300 meters radius
+                }).addTo(map);
+                
+                const dist = map.distance(userLatLng, spotLatLng);
+                if(dist < closestDist) closestDist = dist;
+            }
+
+            // Generate 2-3 random safe zones (Green Zones) within ~2km
+            const numSafe = Math.floor(Math.random() * 2) + 2;
+            for(let i=0; i<numSafe; i++) {
+                const offsetLat = (Math.random() - 0.5) * 0.03;
+                const offsetLng = (Math.random() - 0.5) * 0.03;
+                const safeLatLng = L.latLng(lat + offsetLat, lng + offsetLng);
+                
+                L.circle(safeLatLng, {
+                    color: '#28a745', // Green
+                    fillColor: '#28a745',
+                    fillOpacity: 0.25,
+                    weight: 2,
+                    radius: 400 // 400 meters radius
+                }).addTo(map);
+            }
+            
+            // Update UI based on closest hotspot
+            const levelEl = document.getElementById('risk-level-text');
+            const reasonEl = document.getElementById('risk-reason-text');
+            
+            if(closestDist < 600) {
+                levelEl.textContent = 'High Risk';
+                reasonEl.textContent = `Caution: Crime hotspot ${(closestDist).toFixed(0)}m away.`;
+                levelEl.className = 'font-label-md text-label-md text-error';
+            } else if(closestDist < 1500) {
+                levelEl.textContent = 'Medium Risk';
+                reasonEl.textContent = `Hotspot ${(closestDist/1000).toFixed(1)}km away. Stay alert.`;
+                levelEl.className = 'font-label-md text-label-md text-secondary';
+            } else {
+                levelEl.textContent = 'Low Risk';
+                reasonEl.textContent = 'Area appears safe.';
+                levelEl.className = 'font-label-md text-label-md text-primary';
+            }
+        };
+
+        if (navigator.geolocation) {
+            let isFirstLocation = true;
+            let userMarker = null;
+            let userPulse = null;
+
+            navigator.geolocation.watchPosition((position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                window.currentLocation = {lat, lng};
+                
+                if (isFirstLocation) {
+                    map.setView([lat, lng], 14);
+                    
+                    // Live Location Blue Marker
+                    userMarker = L.circleMarker([lat, lng], {
+                        radius: 8,
+                        fillColor: "#007bff", // Blue
+                        color: "#ffffff",
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 1
+                    }).addTo(map);
+                    
+                    // Blue pulse ring
+                    userPulse = L.circle([lat, lng], {
+                        radius: 100,
+                        color: '#007bff',
+                        fillColor: '#007bff',
+                        fillOpacity: 0.1,
+                        weight: 1
+                    }).addTo(map);
+                    
+                    // Run Risk AI Analysis on the area only once initially
+                    analyzeAreaRisk(lat, lng);
+                    isFirstLocation = false;
+                } else {
+                    // Continuously update the marker as the user moves
+                    userMarker.setLatLng([lat, lng]);
+                    userPulse.setLatLng([lat, lng]);
+                }
+            }, () => {
+                if (isFirstLocation) {
+                    console.log("Location access denied. Using default location.");
+                    window.currentLocation = {lat: 40.7128, lng: -74.0060};
+                }
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 10000,
+                timeout: 5000
+            });
+        }
+
+        // Admin Dashboard / Alert History Logic
+        const loadHistory = () => {
+            const history = JSON.parse(localStorage.getItem('guardian_alerts') || '[]');
+            const list = document.getElementById('admin-history-list');
+            if(history.length === 0) {
+                list.innerHTML = '<p class="text-on-surface-variant text-center py-8">No alerts recorded.</p>';
+                return;
+            }
+            list.innerHTML = history.reverse().map(alert => `
+                <div class="bg-surface p-4 rounded-lg border-l-4 ${alert.type === 'Test' ? 'border-secondary' : 'border-error'} shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-on-surface">${alert.type} Alert</span>
+                        <span class="text-xs text-on-surface-variant">${new Date(alert.timestamp).toLocaleString()}</span>
+                    </div>
+                    <p class="text-sm text-on-surface-variant mt-1">${alert.reason}</p>
+                    <p class="text-xs text-primary mt-2">Loc: ${alert.location.lat.toFixed(4)}, ${alert.location.lng.toFixed(4)}</p>
+                </div>
+            `).join('');
+        };
+
+        const saveAlert = (type, reason) => {
+            const history = JSON.parse(localStorage.getItem('guardian_alerts') || '[]');
+            history.push({
+                type, reason,
+                timestamp: Date.now(),
+                location: window.currentLocation || {lat: 0, lng: 0}
+            });
+            localStorage.setItem('guardian_alerts', JSON.stringify(history));
+        };
+
+        document.getElementById('btn-admin')?.addEventListener('click', () => {
+            loadHistory();
+            document.getElementById('admin-modal').classList.remove('hidden');
+        });
+        document.getElementById('close-admin-modal')?.addEventListener('click', () => document.getElementById('admin-modal').classList.add('hidden'));
+        document.getElementById('clear-history')?.addEventListener('click', () => {
+            localStorage.removeItem('guardian_alerts');
+            loadHistory();
+        });
+
+        // TF.js Toxicity Model (Local AI Danger Detection)
+        let model = null;
+        const threshold = 0.8;
+        toxicity.load(threshold, ['threat', 'severe_toxicity']).then(mdl => {
+            model = mdl;
+            console.log("TensorFlow.js Toxicity Model Loaded.");
+            // UI text is now managed by Area Risk logic
+        });
+
+        // Web Speech API + Audio Recording
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+
+        // Setup MediaRecorder for 10s audio capture
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `emergency_recording_${Date.now()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                audioChunks = [];
+            };
+        }).catch(err => console.log("Mic access denied for MediaRecorder"));
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true; // Crucial for instant detection
+            recognition.lang = 'en-US';
+
+            recognition.onend = () => {
+                // Automatically restart listening if it was turned on
+                if(isListening) {
+                    recognition.start();
+                }
+            };
+
+            recognition.onresult = async (event) => {
+                // Get the most recent transcript (including interim/partial words)
+                let transcript = "";
+                let isFinal = false;
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript;
+                    if (event.results[i].isFinal) isFinal = true;
+                }
+                transcript = transcript.trim().toLowerCase();
+                
+                // 1. Keyword & Emotion checks (SUPER FAST - Runs instantly as you speak)
+                const keywords = ['help me', "i'm not safe", 'im not safe', 'emergency', 'help', 'kapadandi','bachav','police'];
+                const hurryEmotions = ['hurry', 'quick', 'fast', 'now', 'please hurry', 'running','please help'];
+                const sadEmotions = ['sad', 'crying', 'scared', 'terrified', 'afraid'];
+                
+                let isDanger = keywords.some(k => transcript.includes(k));
+                let reason = "Emergency Keyword used.";
+
+                if (!isDanger) {
+                    if (hurryEmotions.some(k => transcript.includes(k))) {
+                        isDanger = true;
+                        reason = "Panic/Hurry emotion detected.";
+                    } else if (sadEmotions.some(k => transcript.includes(k))) {
+                        isDanger = true;
+                        reason = "Distress/Sad emotion detected.";
+                    }
+                }
+
+                if (isDanger) {
+                    // Trigger INSTANTLY without waiting for the sentence to finish
+                    triggerEmergencyResponse(`Voice AI Auto-Trigger: ${reason}`);
+                    return; 
+                }
+
+                // 2. TF.js Toxicity check (SLOW - Only runs when you finish the sentence to prevent lag)
+                if(isFinal && model) {
+                    const predictions = await model.classify([transcript]);
+                    if(predictions.some(p => p.results[0].match)) {
+                        triggerEmergencyResponse("Voice AI Auto-Trigger: TF.js Threat detected.");
+                    }
+                }
+            };
+        }
+
+        let isListening = false;
+        
+        // Auto-start Voice Recognition without needing to click the button
+        const startListeningAutomatically = () => {
+            if(!recognition || isListening) return;
+            try {
+                recognition.start();
+                isListening = true;
+                const btn = document.getElementById('btn-voice-trigger');
+                if(btn) {
+                    btn.classList.add('animate-pulse', 'bg-error-container');
+                    btn.querySelector('span.text-on-surface').textContent = "Listening (Auto)...";
+                }
+                console.log("Voice recognition auto-started successfully.");
+            } catch(e) {
+                console.log("Browser blocked auto-start. Waiting for user interaction.");
+            }
+        };
+
+        // Try to start immediately on load
+        setTimeout(startListeningAutomatically, 1000);
+
+        // Fallback: Start automatically on the very first click ANYWHERE on the page
+        // (Browsers sometimes require a click before allowing microphone access)
+        document.body.addEventListener('click', startListeningAutomatically, { once: true });
+
+        // Keep the button functional as a manual toggle just in case
+        document.getElementById('btn-voice-trigger')?.addEventListener('click', (e) => {
+            e.stopPropagation(); // prevent triggering the body click twice
+            const btn = document.getElementById('btn-voice-trigger');
+            if(!recognition) return alert("Speech Recognition not supported.");
+            
+            if(!isListening) {
+                recognition.start();
+                isListening = true;
+                btn.classList.add('animate-pulse', 'bg-error-container');
+                btn.querySelector('span.text-on-surface').textContent = "Listening...";
+            } else {
+                recognition.stop();
+                isListening = false;
+                btn.classList.remove('animate-pulse', 'bg-error-container');
+                btn.querySelector('span.text-on-surface').textContent = "Voice Trigger";
+            }
+        });
+
+        // Emergency SOS Sequence
+        const triggerEmergencyResponse = async (reason = "Manual SOS Activation") => {
+            saveAlert('Emergency', reason);
+            
+            // Visuals
+            document.body.classList.add('bg-error-container', 'animate-pulse');
+            setTimeout(() => document.body.classList.remove('animate-pulse'), 3000);
+            
+            const modal = document.getElementById('sos-modal');
+            const list = document.getElementById('sos-actions-list');
+            modal.classList.remove('hidden');
+            list.innerHTML = '<p class="text-sm text-on-surface-variant">Executing Serverless Actions...</p>';
+
+            let actions_taken = [];
+
+            // 1. Audio Alarm (Siren)
+            try {
+                document.getElementById('siren-audio').play();
+                actions_taken.push("High-decibel Alarm Activated");
+            } catch(e) { console.log("Audio autoplay blocked", e); }
+
+            // 2. Start Recording
+            if(mediaRecorder && mediaRecorder.state === "inactive") {
+                mediaRecorder.start();
+                setTimeout(() => mediaRecorder.stop(), 10000); // Record 10 seconds
+                actions_taken.push("Audio recording started (will download locally)");
+            }
+
+            // 3. Send Telegram Location OR Fallback
+            const lat = window.currentLocation?.lat || 0;
+            const lng = window.currentLocation?.lng || 0;
+            const mapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+            const message = `EMERGENCY SOS!\nUser is in danger!\nReason: ${reason}\nLocation: ${mapsLink}`;
+
+            if (!navigator.onLine) {
+                // Offline Fallback
+                actions_taken.push("System Offline. Using SMS Fallback.");
+                window.location.href = `sms:?body=${encodeURIComponent(message)}`;
+            } else if (TELEGRAM_BOT_TOKEN !== "YOUR_BOT_TOKEN_HERE") {
+                // Send Telegram Message
+                try {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message })
+                    });
+                    actions_taken.push("Live location shared securely via Telegram");
+                } catch(err) {
+                    actions_taken.push("Failed to send Telegram message");
+                }
+            } else {
+                actions_taken.push("Telegram integration missing token. Simulation only.");
+            }
+
+            // Render Actions
+            list.innerHTML = actions_taken.map(action => 
+                `<div class="flex items-center space-x-2"><span class="material-symbols-outlined text-green-600">check_circle</span><span class="text-sm font-semibold">${action}</span></div>`
+            ).join('');
+        };
+
+        const sosButtons = ['btn-sos-desktop', 'btn-sos-mobile', 'btn-sos-nav'];
+        sosButtons.forEach(id => {
+            document.getElementById(id)?.addEventListener('click', () => triggerEmergencyResponse("Manual Button Press"));
+        });
+
+        document.getElementById('close-sos-modal')?.addEventListener('click', () => {
+            document.getElementById('sos-modal').classList.add('hidden');
+            document.body.classList.remove('bg-error-container');
+            document.getElementById('siren-audio').pause();
+            document.getElementById('siren-audio').currentTime = 0;
+        });
+    </script>
+</body>
+</html>
