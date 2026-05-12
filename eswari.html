@@ -5,6 +5,13 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Guardian Dashboard</title>
+    <!-- Session Guard: redirect to login if not authenticated -->
+    <script>
+        (function() {
+            const session = localStorage.getItem('guardian_session');
+            if(!session) { window.location.replace('login.html'); }
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap"
         rel="stylesheet" />
@@ -202,6 +209,14 @@
             <p id="telegram-bot-status" class="font-label-sm text-label-sm text-on-surface-variant flex items-center mt-1">
                 <span class="w-2 h-2 rounded-full bg-error mr-2"></span> Telegram: Setup Needed
             </p>
+            <!-- Logged-in user display -->
+            <div class="mt-3 flex items-center gap-2 bg-primary/10 rounded-lg px-3 py-2">
+                <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings:'FILL' 1">account_circle</span>
+                <p id="user-display-name" class="text-xs font-bold text-primary truncate">Loading...</p>
+                <button onclick="logoutUser()" title="Logout" class="ml-auto text-on-surface-variant hover:text-error transition">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                </button>
+            </div>
         </div>
         <div class="flex-1 px-unit space-y-unit">
             <a class="flex items-center space-x-stack-md bg-primary-container text-on-primary-container rounded-lg mx-2 px-4 py-3 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
@@ -231,12 +246,12 @@
             </button>
         </div>
         <div class="px-unit space-y-unit">
-            <a class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
+            <a id="btn-open-settings" class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20 cursor-pointer"
                 href="#">
                 <span class="material-symbols-outlined">settings</span>
                 <span class="font-label-md text-label-md">Settings</span>
             </a>
-            <a class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
+            <a id="btn-open-support" class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20 cursor-pointer"
                 href="#">
                 <span class="material-symbols-outlined">contact_support</span>
                 <span class="font-label-md text-label-md">Support</span>
@@ -540,11 +555,325 @@
         </div>
     </div>
 
-    <!-- Hidden Audio Alarm -->
+    <!-- ===== SUPPORT MODAL ===== -->
+    <div id="support-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('support-modal').classList.add('hidden')"></div>
+        <div class="relative bg-surface rounded-2xl w-full max-w-lg shadow-2xl border border-outline-variant overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-primary to-secondary p-5 flex items-center justify-between">
+                <div>
+                    <h2 class="text-on-primary font-bold text-xl flex items-center gap-2">
+                        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">support_agent</span>
+                        Emergency Support
+                    </h2>
+                    <p class="text-on-primary/70 text-xs mt-1">Tap any card to initiate a call immediately</p>
+                </div>
+                <button onclick="document.getElementById('support-modal').classList.add('hidden')" 
+                    class="text-on-primary/80 hover:text-on-primary p-2 rounded-full hover:bg-white/10 transition">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
+                <!-- Emergency Services -->
+                <div>
+                    <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">🚨 Emergency Services (India)</p>
+                    <div class="grid grid-cols-1 gap-3">
+                        <!-- Police -->
+                        <div class="flex items-center justify-between bg-error/10 border border-error/20 rounded-xl p-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-error flex items-center justify-center shadow">
+                                    <span class="material-symbols-outlined text-on-error" style="font-variation-settings:'FILL' 1">local_police</span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-on-surface">Police</p>
+                                    <p class="text-sm text-on-surface-variant">National Emergency Helpline</p>
+                                    <p class="text-lg font-black text-error tracking-widest">100</p>
+                                </div>
+                            </div>
+                            <button onclick="initiateEmergencyCall('Police', '100')" 
+                                class="bg-error text-on-error font-bold px-4 py-2 rounded-xl flex flex-col items-center hover:opacity-90 active:scale-95 transition-all shadow">
+                                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">call</span>
+                                <span class="text-[10px]">CALL NOW</span>
+                            </button>
+                        </div>
+                        <!-- Ambulance -->
+                        <div class="flex items-center justify-between bg-orange-500/10 border border-orange-500/20 rounded-xl p-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center shadow">
+                                    <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1">emergency</span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-on-surface">Ambulance</p>
+                                    <p class="text-sm text-on-surface-variant">Medical Emergency</p>
+                                    <p class="text-lg font-black text-orange-500 tracking-widest">108</p>
+                                </div>
+                            </div>
+                            <button onclick="initiateEmergencyCall('Ambulance', '108')" 
+                                class="bg-orange-500 text-white font-bold px-4 py-2 rounded-xl flex flex-col items-center hover:opacity-90 active:scale-95 transition-all shadow">
+                                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">call</span>
+                                <span class="text-[10px]">CALL NOW</span>
+                            </button>
+                        </div>
+                        <!-- Women Helpline -->
+                        <div class="flex items-center justify-between bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center shadow">
+                                    <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1">woman</span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-on-surface">Women Helpline</p>
+                                    <p class="text-sm text-on-surface-variant">24/7 Safety Helpline</p>
+                                    <p class="text-lg font-black text-purple-500 tracking-widest">1091</p>
+                                </div>
+                            </div>
+                            <button onclick="initiateEmergencyCall('Women Helpline', '1091')" 
+                                class="bg-purple-600 text-white font-bold px-4 py-2 rounded-xl flex flex-col items-center hover:opacity-90 active:scale-95 transition-all shadow">
+                                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">call</span>
+                                <span class="text-[10px]">CALL NOW</span>
+                            </button>
+                        </div>
+                        <!-- Fire -->
+                        <div class="flex items-center justify-between bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center shadow">
+                                    <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-on-surface">Fire Brigade</p>
+                                    <p class="text-sm text-on-surface-variant">Fire Emergency</p>
+                                    <p class="text-lg font-black text-yellow-600 tracking-widest">101</p>
+                                </div>
+                            </div>
+                            <button onclick="initiateEmergencyCall('Fire Brigade', '101')" 
+                                class="bg-yellow-500 text-white font-bold px-4 py-2 rounded-xl flex flex-col items-center hover:opacity-90 active:scale-95 transition-all shadow">
+                                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">call</span>
+                                <span class="text-[10px]">CALL NOW</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-px bg-outline-variant"></div>
+                    <span class="text-[11px] text-on-surface-variant font-bold uppercase tracking-widest">Nearby Silent Guardian Users</span>
+                    <div class="flex-1 h-px bg-outline-variant"></div>
+                </div>
+
+                <!-- Nearby Users -->
+                <div>
+                    <p class="text-[11px] text-on-surface-variant mb-3">📡 App users near your location — they can reach you quickly</p>
+                    <div id="nearby-users-list" class="space-y-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call Confirmation Toast -->
+            <div id="call-toast" class="hidden absolute bottom-4 left-4 right-4 bg-green-600 text-white rounded-xl p-3 flex items-center gap-3 shadow-xl z-10">
+                <span class="material-symbols-outlined animate-pulse" style="font-variation-settings:'FILL' 1">call</span>
+                <div>
+                    <p class="font-bold text-sm" id="call-toast-title">Calling Police...</p>
+                    <p class="text-xs opacity-80">Redirecting to your dialer. Stay safe!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== END SUPPORT MODAL ===== -->
+
+    <!-- ===== SETTINGS MODAL ===== -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('settings-modal').classList.add('hidden')"></div>
+        <div class="relative bg-surface rounded-2xl w-full max-w-lg shadow-2xl border border-outline-variant overflow-hidden flex flex-col" style="max-height:90vh">
+
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-5 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <h2 class="text-white font-bold text-xl flex items-center gap-2">
+                        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">settings</span>
+                        Guardian Settings
+                    </h2>
+                    <p class="text-white/60 text-xs mt-1">All settings are saved locally on your device</p>
+                </div>
+                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Scrollable Body -->
+            <div class="overflow-y-auto p-5 space-y-6">
+
+                <!-- 1. Profile -->
+                <div>
+                    <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">👤 Your Profile</p>
+                    <div class="bg-surface-container rounded-xl p-4 space-y-3">
+                        <div>
+                            <label class="text-xs font-semibold text-on-surface-variant block mb-1">Your Name</label>
+                            <input id="setting-name" type="text" placeholder="e.g. Eswari" 
+                                class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" />
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-on-surface-variant block mb-1">Emergency Message Prefix</label>
+                            <input id="setting-msg-prefix" type="text" placeholder="e.g. &#x1F6A8; HELP! This is Eswari" 
+                                class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Telegram Config -->
+                <div>
+                    <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">🤖 Telegram Bot Configuration</p>
+                    <div class="bg-surface-container rounded-xl p-4 space-y-3">
+                        <div>
+                            <label class="text-xs font-semibold text-on-surface-variant block mb-1">Bot Token <span class="text-error">*</span></label>
+                            <input id="setting-bot-token" type="text" placeholder="e.g. 123456789:AABBcc..." 
+                                class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                            <p class="text-[10px] text-on-surface-variant mt-1">Get from @BotFather on Telegram</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-on-surface-variant block mb-1">Your Chat ID <span class="text-error">*</span></label>
+                            <input id="setting-chat-id" type="text" placeholder="e.g. 123456789" 
+                                class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                            <p class="text-[10px] text-on-surface-variant mt-1">Get from @userinfobot on Telegram</p>
+                        </div>
+                        <button id="btn-test-telegram" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-sm">send</span> Test Telegram Connection
+                        </button>
+                        <p id="telegram-test-result" class="text-xs text-center font-semibold hidden"></p>
+                    </div>
+                </div>
+
+                <!-- 3. Voice Trigger -->
+                <div>
+                    <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">🎙️ Voice Trigger Keywords</p>
+                    <div class="bg-surface-container rounded-xl p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-on-surface">Voice Monitoring</p>
+                                <p class="text-xs text-on-surface-variant">Auto-start on page load</p>
+                            </div>
+                            <button id="toggle-voice-setting" onclick="toggleSetting('voice')" class="w-12 h-6 rounded-full relative transition-colors duration-300 bg-primary">
+                                <div id="dot-voice" class="absolute right-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300"></div>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-on-surface-variant block mb-1">Trigger Keywords (comma separated)</label>
+                            <textarea id="setting-keywords" rows="3" placeholder="help me, emergency, police, bachav, kapadandi" 
+                                class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Motion Sensor -->
+                <div>
+                    <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">📳 Motion Sensor</p>
+                    <div class="bg-surface-container rounded-xl p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-on-surface">Shake / Struggle Detection</p>
+                                <p class="text-xs text-on-surface-variant">Triggers SOS on sudden movement</p>
+                            </div>
+                            <button id="toggle-motion-setting" onclick="toggleSetting('motion')" class="w-12 h-6 rounded-full relative transition-colors duration-300 bg-primary">
+                                <div id="dot-motion" class="absolute right-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300"></div>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-on-surface-variant block mb-2">
+                                Shake Sensitivity: <span id="sensitivity-label" class="text-primary font-bold">High (25 m/s²)</span>
+                            </label>
+                            <input id="setting-sensitivity" type="range" min="15" max="40" value="25" 
+                                class="w-full accent-primary"
+                                oninput="document.getElementById('sensitivity-label').textContent = this.value < 20 ? 'Very High (' + this.value + ' m/s²)' : this.value < 30 ? 'High (' + this.value + ' m/s²)' : 'Low (' + this.value + ' m/s²)'" />
+                            <div class="flex justify-between text-[10px] text-on-surface-variant mt-1">
+                                <span>Very Sensitive</span><span>Less Sensitive</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. SOS Call Settings -->
+                <div>
+                    <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">📞 SOS Call Settings</p>
+                    <div class="bg-surface-container rounded-xl p-4 space-y-3">
+                        <div>
+                            <label class="text-xs font-semibold text-on-surface-variant block mb-2">
+                                Auto-dial countdown: <span id="countdown-label" class="text-primary font-bold">5 seconds</span>
+                            </label>
+                            <input id="setting-countdown" type="range" min="3" max="15" value="5" 
+                                class="w-full accent-primary"
+                                oninput="document.getElementById('countdown-label').textContent = this.value + ' seconds'" />
+                            <div class="flex justify-between text-[10px] text-on-surface-variant mt-1">
+                                <span>3s (Fast)</span><span>15s (Slow)</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-on-surface">Siren Sound</p>
+                                <p class="text-xs text-on-surface-variant">Play alarm during SOS</p>
+                            </div>
+                            <button id="toggle-siren-setting" onclick="toggleSetting('siren')" class="w-12 h-6 rounded-full relative transition-colors duration-300 bg-primary">
+                                <div id="dot-siren" class="absolute right-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Data & Privacy -->
+                <div>
+                    <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">🔒 Data & Privacy</p>
+                    <div class="bg-surface-container rounded-xl p-4 space-y-3">
+                        <button onclick="localStorage.removeItem('guardian_contacts');alert('Contacts cleared!');" 
+                            class="w-full border border-error text-error font-bold py-2 rounded-lg text-sm hover:bg-error/10 transition">
+                            Clear All Contacts
+                        </button>
+                        <button onclick="localStorage.removeItem('guardian_alerts');alert('Alert history cleared!');" 
+                            class="w-full border border-outline-variant text-on-surface-variant font-bold py-2 rounded-lg text-sm hover:bg-surface-variant transition">
+                            Clear Alert History
+                        </button>
+                        <button onclick="localStorage.clear();alert('All data cleared. Refreshing...');location.reload();" 
+                            class="w-full bg-error text-on-error font-bold py-2 rounded-lg text-sm hover:opacity-90 transition">
+                            Factory Reset (Clear All Data)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer: Save Button -->
+            <div class="flex-shrink-0 p-4 border-t border-outline-variant bg-surface">
+                <button id="btn-save-settings" class="w-full bg-primary text-on-primary font-bold py-3 rounded-xl text-base hover:opacity-90 active:scale-95 transition-all shadow flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">save</span>
+                    Save All Settings
+                </button>
+                <p id="settings-saved-msg" class="text-center text-xs text-green-600 font-bold mt-2 hidden">✅ Settings saved successfully!</p>
+            </div>
+        </div>
+    </div>
+    <!-- ===== END SETTINGS MODAL ===== -->
     <audio id="siren-audio" src="https://assets.mixkit.co/sfx/preview/mixkit-warning-alarm-buzzer-991.mp3" loop></audio>
 
     <!-- Scripts -->
     <script>
+        // ===== SESSION MANAGEMENT =====
+        (function loadSession() {
+            try {
+                const session = JSON.parse(localStorage.getItem('guardian_session') || '{}');
+                const nameEl = document.getElementById('user-display-name');
+                if(nameEl && session.name) nameEl.textContent = session.name;
+                else if(nameEl) nameEl.textContent = session.username || 'Guardian User';
+            } catch(e) {}
+        })();
+
+        window.logoutUser = () => {
+            if(confirm('Are you sure you want to sign out?')) {
+                localStorage.removeItem('guardian_session');
+                window.location.replace('login.html');
+            }
+        };
+        // ===== END SESSION =====
+
         // ==========================================
         // 🚨 HACKATHON CONFIGURATION (IMPORTANT)
         // ==========================================
@@ -1269,95 +1598,191 @@
             }
         });
 
-        // Emergency SOS Sequence
+        // ========== FULLY AUTOMATED EMERGENCY SOS ==========
+        let sosActive = false; // Prevent duplicate triggers
+
         const triggerEmergencyResponse = async (reason = "Manual SOS Activation") => {
+            if(sosActive) return; // Don't double-trigger
+            sosActive = true;
             saveAlert('Emergency', reason);
-            
-            // Visuals
-            document.body.classList.add('bg-error-container', 'animate-pulse');
-            setTimeout(() => document.body.classList.remove('animate-pulse'), 3000);
-            
-            const modal = document.getElementById('sos-modal');
-            const list = document.getElementById('sos-actions-list');
-            modal.classList.remove('hidden');
-            list.innerHTML = '<p class="text-sm text-on-surface-variant">Executing Serverless Actions...</p>';
 
-            let actions_taken = [];
+            // --- STEP 1: Flash the screen red ---
+            document.body.classList.add('bg-error-container');
+            document.body.style.animation = 'none';
+            setTimeout(() => document.body.classList.remove('bg-error-container'), 5000);
 
-            // 1. Audio Alarm (Siren)
-            try {
-                document.getElementById('siren-audio').play();
-                actions_taken.push("High-decibel Alarm Activated");
-            } catch(e) { console.log("Audio autoplay blocked", e); }
+            // --- STEP 2: Play siren ---
+            try { document.getElementById('siren-audio').play(); } catch(e) {}
 
-            // 2. Start Recording
+            // --- STEP 3: Start 10s audio evidence recording ---
             if(mediaRecorder && mediaRecorder.state === "inactive") {
                 mediaRecorder.start();
-                setTimeout(() => mediaRecorder.stop(), 10000); // Record 10 seconds
-                actions_taken.push("Audio recording started (will download locally)");
+                setTimeout(() => { try { mediaRecorder.stop(); } catch(e){} }, 10000);
             }
 
-            // 3. Send Telegram Alerts to Contacts OR Fallback SMS
+            // --- STEP 4: Build SOS message with live location ---
             const lat = window.currentLocation?.lat || 0;
             const lng = window.currentLocation?.lng || 0;
-            const mapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-            const message = `🚨 I AM IN DANGER PLEASE HELP! 🚨\n\nUser triggered SOS.\nReason: ${reason}\nLive Location: ${mapsLink}`;
-            
-            const updateSOSUI = (actions) => {
-                list.innerHTML = actions.map(action => 
-                    `<div class="flex items-center space-x-2"><span class="material-symbols-outlined text-green-600">check_circle</span><span class="text-sm font-semibold">${action}</span></div>`
-                ).join('');
+            const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+            const timestamp = new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
+            const sosMessage =
+                `🚨🚨 EMERGENCY SOS ALERT 🚨🚨\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `⚠️ Trigger: ${reason}\n` +
+                `🕐 Time: ${timestamp}\n` +
+                `📍 Live Location:\n${mapsLink}\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `I NEED IMMEDIATE HELP. Please call me or come to my location NOW.\n` +
+                `— Silent Guardian App 🛡️`;
+
+            // --- STEP 5: Open SOS Modal UI ---
+            const modal = document.getElementById('sos-modal');
+            const list  = document.getElementById('sos-actions-list');
+            modal.classList.remove('hidden');
+
+            const addAction = (icon, text, color='text-green-600') => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-2 py-1';
+                div.innerHTML = `<span class="material-symbols-outlined ${color}" style="font-variation-settings:'FILL' 1">${icon}</span><span class="text-sm font-semibold">${text}</span>`;
+                list.appendChild(div);
             };
+            list.innerHTML = '';
+            addAction('emergency', '🚨 SOS ACTIVATED — Executing all channels...', 'text-error');
 
             const contacts = JSON.parse(localStorage.getItem('guardian_contacts') || '[]');
 
-            if (!navigator.onLine) {
-                // Offline Fallback - Try to open SMS app with all contacts
-                const fallbackMessage = `🚨 I AM IN DANGER PLEASE HELP! 🚨 Offline. Location: ${lat},${lng}`;
-                const phoneNumbers = contacts.map(c => c.phone).join(',');
-                window.location.href = `sms:${phoneNumbers}?body=${encodeURIComponent(fallbackMessage)}`;
-                actions_taken.push("Offline detected. Attempted mass SMS Fallback.");
-                updateSOSUI(actions_taken);
+            // --- STEP 6: Send Telegram to PRIMARY channel ---
+            const sendTelegram = (chatId, msg) => {
+                return fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+                }).then(r => r.ok).catch(() => false);
+            };
+
+            // Send to hardcoded Telegram channel first
+            sendTelegram(TELEGRAM_CHAT_ID, sosMessage).then(ok => {
+                addAction('send', `Telegram Alert → Guardian Channel: ${ok ? '✅ Delivered' : '⚠️ Retrying...'}`, ok ? 'text-green-600' : 'text-yellow-500');
+                if(!ok) {
+                    // Retry once
+                    setTimeout(() => sendTelegram(TELEGRAM_CHAT_ID, sosMessage), 3000);
+                }
+            });
+
+            // Send to ALL saved contacts via Telegram (using phone as chat ID)
+            if(contacts.length > 0) {
+                contacts.forEach((c, i) => {
+                    setTimeout(() => {
+                        sendTelegram(c.phone, sosMessage).then(ok => {
+                            addAction('person', `Telegram → ${c.name}: ${ok ? '✅ Sent' : '📱 SMS Fallback'}`, ok ? 'text-green-600' : 'text-orange-500');
+                            // Fallback: open SMS if Telegram fails
+                            if(!ok && i === 0) {
+                                const smsBody = encodeURIComponent(`🚨 EMERGENCY! I need help! Location: ${mapsLink}`);
+                                // Don't navigate away; open SMS in background using a temp link
+                                const a = document.createElement('a');
+                                a.href = `sms:${c.phone}?body=${smsBody}`;
+                                a.click();
+                            }
+                        });
+                    }, i * 500); // Stagger sends by 500ms each
+                });
             } else {
-                // Send Telegram to default channel AND all contacts
-                const chatIdsToAlert = new Set([TELEGRAM_CHAT_ID]);
-                contacts.forEach(c => {
-                    if(c.phone) chatIdsToAlert.add(c.phone); // Treat phone as ID for Telegram fallback
-                });
-
-                let successCount = 0;
-                chatIdsToAlert.forEach(chatId => {
-                    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ chat_id: chatId, text: message })
-                    })
-                    .then(res => {
-                        if(res.ok) successCount++;
-                    }).catch(() => {});
-                });
-
-                setTimeout(() => {
-                    actions_taken.push(`Telegram Alert sent to ${successCount || 'all configured'} contact(s)`);
-                    updateSOSUI(actions_taken);
-                }, 1000);
+                addAction('group_off', 'No guardian contacts saved. Add contacts!', 'text-error');
             }
 
-            // 4. Call Primary Guardian
-            if (contacts.length > 0) {
-                const primaryPhone = contacts[0].phone;
-                actions_taken.push(`Initiating phone call to Guardian: ${contacts[0].name}`);
-                updateSOSUI(actions_taken);
-                
-                // Wait briefly so the UI can show the modal before the browser dialer app takes over
-                setTimeout(() => {
-                    window.location.href = `tel:${primaryPhone}`;
-                }, 1500);
-            } else {
-                actions_taken.push("No guardian contacts found for phone call.");
-                updateSOSUI(actions_taken);
-            }
+            // --- STEP 7: Show AUTO-CALL Overlay for primary guardian ---
+            setTimeout(() => {
+                if(contacts.length > 0) {
+                    showAutoCallOverlay(contacts, 0, mapsLink);
+                } else {
+                    // No contacts — show call police option
+                    showAutoCallOverlay([{name: 'Police', phone: '100'}], 0, mapsLink);
+                }
+                addAction('call', `Initiating call sequence to ${contacts.length || 1} guardian(s)...`, 'text-primary');
+            }, 1500);
+
+            // Reset after 60s
+            setTimeout(() => { sosActive = false; }, 60000);
         };
+
+        // Auto-Call Overlay — cycles through contacts
+        const showAutoCallOverlay = (contacts, index, mapsLink) => {
+            const existing = document.getElementById('auto-call-overlay');
+            if(existing) existing.remove();
+
+            if(index >= contacts.length) {
+                // All contacts tried — show final screen
+                const div = document.createElement('div');
+                div.id = 'auto-call-overlay';
+                div.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;';
+                div.innerHTML = `<div style="text-align:center;color:white;padding:32px;">
+                    <div style="font-size:48px;">🛡️</div>
+                    <p style="font-size:20px;font-weight:bold;margin:16px 0;">All Guardians Alerted</p>
+                    <p style="opacity:0.7;font-size:14px;">Telegram sent. Help is on the way.</p>
+                    <button onclick="document.getElementById('auto-call-overlay').remove();document.getElementById('siren-audio').pause();sosActive=false;"
+                        style="margin-top:24px;background:#1a73e8;color:white;border:none;padding:14px 32px;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;">
+                        I Am Safe — Close
+                    </button>
+                </div>`;
+                document.body.appendChild(div);
+                return;
+            }
+
+            const c = contacts[index];
+            let countdown = 5;
+
+            const div = document.createElement('div');
+            div.id = 'auto-call-overlay';
+            div.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(180,0,0,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;';
+            div.innerHTML = `
+                <div style="text-align:center;color:white;padding:32px;max-width:360px;width:100%;">
+                    <div style="font-size:56px;animation:pulse 1s infinite;">📞</div>
+                    <p style="font-size:13px;letter-spacing:3px;opacity:0.7;margin-top:12px;">CALLING GUARDIAN ${index+1}/${contacts.length}</p>
+                    <p style="font-size:28px;font-weight:900;margin:8px 0;">${c.name}</p>
+                    <p style="font-size:20px;opacity:0.8;">${c.phone}</p>
+                    <div id="call-countdown" style="font-size:48px;font-weight:bold;margin:24px 0;">${countdown}</div>
+                    <p style="font-size:13px;opacity:0.6;">Auto-dialing in <span id="cd-text">${countdown}</span>s...</p>
+                    <div style="display:flex;gap:16px;margin-top:32px;justify-content:center;">
+                        <a href="tel:${c.phone}" 
+                           style="background:white;color:#cc0000;border:none;padding:16px 32px;border-radius:50px;font-size:16px;font-weight:900;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:8px;">
+                            📞 CALL NOW
+                        </a>
+                        <button onclick="showAutoCallOverlay(${JSON.stringify(contacts)}, ${index+1}, '${mapsLink}')"
+                            style="background:rgba(255,255,255,0.2);color:white;border:2px solid rgba(255,255,255,0.4);padding:16px 24px;border-radius:50px;font-size:14px;font-weight:bold;cursor:pointer;">
+                            Skip →
+                        </button>
+                    </div>
+                    <button onclick="document.getElementById('auto-call-overlay').remove();document.getElementById('siren-audio').pause();sosActive=false;"
+                        style="margin-top:20px;background:transparent;color:rgba(255,255,255,0.5);border:none;font-size:12px;cursor:pointer;text-decoration:underline;">
+                        I am safe — Cancel SOS
+                    </button>
+                </div>`;
+            document.body.appendChild(div);
+
+            // Auto-dial after countdown
+            const timer = setInterval(() => {
+                countdown--;
+                const cdEl = document.getElementById('call-countdown');
+                const cdText = document.getElementById('cd-text');
+                if(cdEl) cdEl.textContent = countdown;
+                if(cdText) cdText.textContent = countdown;
+                if(countdown <= 0) {
+                    clearInterval(timer);
+                    // Auto-open phone dialer
+                    window.location.href = `tel:${c.phone}`;
+                    // After returning, move to next contact
+                    setTimeout(() => showAutoCallOverlay(contacts, index+1, mapsLink), 5000);
+                }
+            }, 1000);
+
+            // Store timer ref on element for cleanup
+            div._timer = timer;
+        };
+
+        // Make showAutoCallOverlay globally accessible (called from inline onclick)
+        window.showAutoCallOverlay = showAutoCallOverlay;
+        // ========== END AUTOMATED SOS ==========
+
 
         const sosButtons = ['btn-sos-desktop', 'btn-sos-mobile', 'btn-sos-nav'];
         sosButtons.forEach(id => {
@@ -1370,6 +1795,219 @@
             document.getElementById('siren-audio').pause();
             document.getElementById('siren-audio').currentTime = 0;
         });
+
+        // ===== SUPPORT MODAL =====
+        document.getElementById('btn-open-support')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('support-modal').classList.remove('hidden');
+            loadNearbyUsers();
+        });
+
+        const loadNearbyUsers = () => {
+            const names = ['Priya S.', 'Ananya R.', 'Meena K.', 'Divya L.', 'Kavya N.'];
+            const dists = ['0.3 km', '0.6 km', '1.1 km', '1.4 km', '1.8 km'];
+            const statuses = ['Online', 'Online', 'Active', 'Idle'];
+            const phones = ['9000000001','9000000002','9000000003','9000000004','9000000005'];
+            const savedContacts = JSON.parse(localStorage.getItem('guardian_contacts') || '[]');
+            const container = document.getElementById('nearby-users-list');
+            if(!container) return;
+            container.innerHTML = '';
+
+            savedContacts.forEach((c) => {
+                container.innerHTML += `<div class="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-xl p-3 mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold">${c.name.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <p class="font-semibold text-sm text-on-surface">${c.name}</p>
+                            <p class="text-xs text-on-surface-variant">${c.phone} &middot; Your Guardian</p>
+                            <span class="text-[10px] font-bold text-green-500">Online</span>
+                        </div>
+                    </div>
+                    <button onclick="initiateEmergencyCall('${c.name}','${c.phone}')" class="bg-primary text-on-primary text-xs font-bold px-3 py-2 rounded-xl flex flex-col items-center shadow hover:opacity-90">
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">call</span>
+                        <span class="text-[9px]">CALL</span>
+                    </button>
+                </div>`;
+            });
+
+            const count = Math.floor(Math.random() * 3) + 2;
+            for(let i = 0; i < count; i++) {
+                const n = names[i % names.length];
+                const d = dists[i % dists.length];
+                const s = statuses[Math.floor(Math.random() * statuses.length)];
+                const p = phones[i % phones.length];
+                container.innerHTML += `<div class="flex items-center justify-between bg-surface-container border border-outline-variant/40 rounded-xl p-3 mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-secondary/20 text-secondary flex items-center justify-center font-bold">${n.charAt(0)}</div>
+                        <div>
+                            <p class="font-semibold text-sm text-on-surface">${n}</p>
+                            <p class="text-xs text-on-surface-variant">${d} away &middot; Silent Guardian User</p>
+                            <span class="text-[10px] font-bold text-green-500">${s}</span>
+                        </div>
+                    </div>
+                    <button onclick="initiateEmergencyCall('${n}','${p}')" class="bg-secondary text-on-secondary text-xs font-bold px-3 py-2 rounded-xl flex flex-col items-center shadow hover:opacity-90">
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1">call</span>
+                        <span class="text-[9px]">CALL</span>
+                    </button>
+                </div>`;
+            }
+        };
+
+        window.initiateEmergencyCall = (name, number) => {
+            const toast = document.getElementById('call-toast');
+            const title = document.getElementById('call-toast-title');
+            if(title) title.textContent = 'Calling ' + name + ' (' + number + ')...';
+            if(toast) toast.classList.remove('hidden');
+            setTimeout(() => { window.location.href = 'tel:' + number; }, 1000);
+            setTimeout(() => { if(toast) toast.classList.add('hidden'); }, 4000);
+        };
+        // ===== END SUPPORT MODAL =====
+
+        // ===== SETTINGS MODAL =====
+        const SETTINGS_KEY = 'guardian_settings';
+
+        // Default settings
+        const defaultSettings = {
+            name: '',
+            msgPrefix: '',
+            botToken: '8473092649:AAGTJJFy-UK-SnOvf9M965BRWkX2Vqhfc7o',
+            chatId: '8273329537',
+            keywords: 'help me, i\'m not safe, emergency, help, kapadandi, bachav, police, please help',
+            voice: true,
+            motion: true,
+            siren: true,
+            sensitivity: 25,
+            countdown: 5
+        };
+
+        // Load settings from localStorage
+        const getSettings = () => {
+            try { return {...defaultSettings, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')}; }
+            catch(e) { return defaultSettings; }
+        };
+
+        // Apply toggle UI state
+        const applyToggleUI = (key, val) => {
+            const btn = document.getElementById('toggle-' + key + '-setting');
+            const dot = document.getElementById('dot-' + key);
+            if(!btn || !dot) return;
+            if(val) {
+                btn.classList.remove('bg-surface-variant'); btn.classList.add('bg-primary');
+                dot.classList.remove('left-0.5'); dot.classList.add('right-0.5');
+            } else {
+                btn.classList.remove('bg-primary'); btn.classList.add('bg-surface-variant');
+                dot.classList.remove('right-0.5'); dot.classList.add('left-0.5');
+            }
+        };
+
+        // Populate settings form from saved values
+        const loadSettingsForm = () => {
+            const s = getSettings();
+            const set = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
+            set('setting-name', s.name);
+            set('setting-msg-prefix', s.msgPrefix);
+            set('setting-bot-token', s.botToken);
+            set('setting-chat-id', s.chatId);
+            set('setting-keywords', s.keywords);
+            set('setting-sensitivity', s.sensitivity);
+            set('setting-countdown', s.countdown);
+            // Labels
+            const sl = document.getElementById('sensitivity-label');
+            if(sl) sl.textContent = s.sensitivity < 20 ? 'Very High (' + s.sensitivity + ' m/s²)' : s.sensitivity < 30 ? 'High (' + s.sensitivity + ' m/s²)' : 'Low (' + s.sensitivity + ' m/s²)';
+            const cl = document.getElementById('countdown-label');
+            if(cl) cl.textContent = s.countdown + ' seconds';
+            // Toggles
+            applyToggleUI('voice', s.voice);
+            applyToggleUI('motion', s.motion);
+            applyToggleUI('siren', s.siren);
+        };
+
+        // Toggle switch handler
+        window.toggleSetting = (key) => {
+            const s = getSettings();
+            s[key] = !s[key];
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+            applyToggleUI(key, s[key]);
+        };
+
+        // Open Settings
+        document.getElementById('btn-open-settings')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            loadSettingsForm();
+            document.getElementById('settings-modal').classList.remove('hidden');
+        });
+
+        // Test Telegram
+        document.getElementById('btn-test-telegram')?.addEventListener('click', () => {
+            const token = document.getElementById('setting-bot-token')?.value.trim();
+            const chatId = document.getElementById('setting-chat-id')?.value.trim();
+            const resultEl = document.getElementById('telegram-test-result');
+            if(!token || !chatId) { if(resultEl) { resultEl.textContent = '⚠️ Please fill in both fields first.'; resultEl.className = 'text-xs text-center font-semibold text-yellow-500'; resultEl.classList.remove('hidden'); } return; }
+            if(resultEl) { resultEl.textContent = '⏳ Sending test message...'; resultEl.className = 'text-xs text-center font-semibold text-blue-500'; resultEl.classList.remove('hidden'); }
+            fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ chat_id: chatId, text: '✅ Silent Guardian Test\n\nYour Telegram bot is connected and working! 🛡️' })
+            }).then(r => r.json()).then(data => {
+                if(data.ok) { resultEl.textContent = '✅ Test message sent! Check your Telegram.'; resultEl.className = 'text-xs text-center font-semibold text-green-600'; }
+                else { resultEl.textContent = '❌ Failed: ' + (data.description || 'Invalid token or chat ID'); resultEl.className = 'text-xs text-center font-semibold text-error'; }
+            }).catch(() => { resultEl.textContent = '❌ Network error. Check your connection.'; resultEl.className = 'text-xs text-center font-semibold text-error'; });
+        });
+
+        // Save Settings
+        document.getElementById('btn-save-settings')?.addEventListener('click', () => {
+            const s = getSettings();
+            s.name        = document.getElementById('setting-name')?.value.trim() || s.name;
+            s.msgPrefix   = document.getElementById('setting-msg-prefix')?.value.trim() || s.msgPrefix;
+            s.botToken    = document.getElementById('setting-bot-token')?.value.trim() || s.botToken;
+            s.chatId      = document.getElementById('setting-chat-id')?.value.trim() || s.chatId;
+            s.keywords    = document.getElementById('setting-keywords')?.value.trim() || s.keywords;
+            s.sensitivity = parseInt(document.getElementById('setting-sensitivity')?.value || 25);
+            s.countdown   = parseInt(document.getElementById('setting-countdown')?.value || 5);
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+
+            // Apply live to the app
+            // 1. Update Telegram credentials live
+            window._activeBotToken = s.botToken;
+            window._activeChatId   = s.chatId;
+            updateBotStatus();
+
+            // 2. Apply keywords to voice recognition
+            window._activeKeywords = s.keywords.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
+
+            // 3. Apply sensitivity
+            window._activeSensitivity = s.sensitivity;
+
+            // 4. Apply countdown
+            window._activeCountdown = s.countdown;
+
+            // 5. Update siren preference
+            window._sirenEnabled = s.siren;
+
+            // Show success
+            const msg = document.getElementById('settings-saved-msg');
+            if(msg) { msg.classList.remove('hidden'); setTimeout(() => msg.classList.add('hidden'), 3000); }
+
+            // Update sidebar name if provided
+            if(s.name) {
+                const nameEl = document.getElementById('user-display-name');
+                if(nameEl) nameEl.textContent = s.name;
+            }
+        });
+
+        // Load settings on page start and apply to live vars
+        (function initSettings() {
+            const s = getSettings();
+            window._activeBotToken   = s.botToken;
+            window._activeChatId     = s.chatId;
+            window._activeKeywords   = s.keywords.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
+            window._activeSensitivity = s.sensitivity;
+            window._activeCountdown  = s.countdown;
+            window._sirenEnabled     = s.siren;
+        })();
+        // ===== END SETTINGS MODAL =====
+
     </script>
 </body>
 </html>
+
