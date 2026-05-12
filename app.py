@@ -4,7 +4,9 @@ import random
 import time
 
 app = Flask(__name__)
-CORS(app) # Allow frontend to call these APIs
+# Enable CORS for all origins and all API routes
+CORS(app, resources={r"/api/*": {"origins": "*"}}) 
+
 
 @app.route('/api/risk-detection', methods=['GET'])
 def risk_detection():
@@ -27,7 +29,8 @@ def risk_detection():
 def voice_sos():
     # Simulate voice-based hidden SOS activation & AI Panic Detection
     data = request.json or {}
-    command = data.get('command', '').lower()
+    # Accept both 'command' and 'transcript' for better frontend compatibility
+    command = (data.get('command') or data.get('transcript') or '').lower()
     
     if not command:
         return jsonify({'status': 'ignored', 'message': 'No audio input detected.'})

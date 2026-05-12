@@ -991,13 +991,10 @@
                 reasonEl.textContent = `Caution: Crime hotspot ${(closestDist).toFixed(0)}m away.`;
                 levelEl.className = 'font-label-md text-label-md text-error';
                 
-                // Automatically trigger SOS and Call if entering a High Risk Area
+                // Notify the user but do NOT automatically trigger SOS to prevent false positives
                 if(!hasTriggeredRiskSOS) {
                     hasTriggeredRiskSOS = true;
-                    // Timeout ensures UI updates before alert/calls block the thread
-                    setTimeout(() => {
-                        triggerEmergencyResponse("Entered High Risk Zone");
-                    }, 2000);
+                    console.log("High Risk Zone detected. User alerted.");
                 }
                 
             } else if(closestDist < 1500) {
@@ -1461,8 +1458,9 @@
                     // Send to backend for AI logging/analysis
                     fetch('http://127.0.0.1:5000/api/voice-sos', {
                         method: 'POST',
+                        mode: 'cors',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ transcript, reason, timestamp: new Date().toISOString() })
+                        body: JSON.stringify({ transcript: transcript, reason: reason, timestamp: new Date().toISOString() })
                     }).catch(e => console.log("Backend Voice-SOS log failed", e));
 
                     // Trigger INSTANTLY without waiting for the sentence to finish
@@ -1587,6 +1585,7 @@
             if (window.currentLocation) {
                 fetch('http://127.0.0.1:5000/api/emergency-response', {
                     method: 'POST',
+                    mode: 'cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         reason: reason,
@@ -1991,7 +1990,10 @@
         // ===== BACKEND API CONNECTION =====
         const syncBackendRisk = async () => {
             try {
-                const res = await fetch('http://127.0.0.1:5000/api/risk-detection');
+                const res = await fetch('http://127.0.0.1:5000/api/risk-detection', {
+                    mode: 'cors',
+                    headers: { 'Accept': 'application/json' }
+                });
                 const data = await res.json();
                 
                 if (data && data.risk_level) {
