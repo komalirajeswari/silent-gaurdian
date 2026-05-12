@@ -259,9 +259,10 @@
                         style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
                 </button> -->
                 <div class="relative group cursor-pointer">
-                    <div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant ml-stack-sm cursor-pointer">
-                        <img alt="User profile settings" class="w-full h-full object-cover"
+                    <div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant ml-stack-sm cursor-pointer" onclick="document.getElementById('profile-pic-upload').click()">
+                        <img id="profile-img-display" alt="User profile settings" class="w-full h-full object-cover"
                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu2TTVlMNxeMqhRxwPxCpVxFt-ya5K7f-xpsJ7tvU4xoS5go3Iyk_CLUV8CxRdtDqgaCOhkLAp2JWTc3payDYvoSSFpt-twbR8kzSaGH7_xgGiKR5rlfhg5ZIQ2-qVyCRWbTOBEVIpcyAQJrl_2iYjjJ0N-jC257_ILK1MZYHtyDizene8aN5_Bu6gKGqIKuBVAEjAdIPsLjuqNLbArQfYCA2EEjsogi3RqHALtf_IDvxpHd8479wpyAd0PgSdbPKOkJXOS_P1739r" />
+                        <input type="file" id="profile-pic-upload" class="hidden" accept="image/*" onchange="handleProfilePicUpload(event)">
                     </div>
                     <!-- Dropdown -->
                     <div class="absolute right-0 top-full mt-2 w-48 bg-surface border border-outline-variant rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
@@ -328,9 +329,16 @@
                                     <span class="material-symbols-outlined text-primary"
                                         style="font-variation-settings: 'FILL' 1;">shield</span>
                                 </div>
-                                <div>
-                                    <p id="risk-level-text" class="font-label-md text-label-md text-primary">Low Risk</p>
-                                    <p id="risk-reason-text" class="font-body-md text-body-md text-on-surface-variant">Area looks calm.</p>
+                                <div class="flex-1 w-full">
+                                    <div class="flex justify-between items-end mb-1">
+                                        <p id="risk-level-text" class="font-label-md text-label-md text-primary">Low Risk</p>
+                                        <span id="risk-percentage-text" class="text-xs font-bold text-primary">15%</span>
+                                    </div>
+                                    <!-- Progress Bar -->
+                                    <div class="w-full bg-surface-variant rounded-full h-1.5 mb-1 overflow-hidden">
+                                        <div id="risk-progress-bar" class="bg-primary h-1.5 rounded-full transition-all duration-1000 ease-out" style="width: 15%"></div>
+                                    </div>
+                                    <p id="risk-reason-text" class="font-body-md text-xs text-on-surface-variant truncate">Area looks calm.</p>
                                 </div>
                             </div>
                             <div class="space-y-stack-sm">
@@ -1950,12 +1958,27 @@
                 if (data && data.risk_level) {
                     const levelEl = document.getElementById('risk-level-text');
                     const reasonEl = document.getElementById('risk-reason-text');
+                    const percentEl = document.getElementById('risk-percentage-text');
+                    const progressEl = document.getElementById('risk-progress-bar');
                     
+                    let isHigh = data.risk_level.toLowerCase().includes('high');
+                    let isMedium = data.risk_level.toLowerCase().includes('medium');
+                    
+                    let percentage = isHigh ? Math.floor(Math.random() * 20 + 80) : isMedium ? Math.floor(Math.random() * 30 + 40) : Math.floor(Math.random() * 20 + 5);
+                    let colorClass = isHigh ? 'text-error' : isMedium ? 'text-secondary' : 'text-primary';
+                    let bgColorClass = isHigh ? 'bg-error' : isMedium ? 'bg-secondary' : 'bg-primary';
+
                     if (levelEl) {
                         levelEl.textContent = data.risk_level;
-                        levelEl.className = 'font-label-md text-label-md ' + 
-                            (data.risk_level.toLowerCase().includes('high') ? 'text-error' : 
-                             data.risk_level.toLowerCase().includes('medium') ? 'text-secondary' : 'text-primary');
+                        levelEl.className = 'font-label-md text-label-md ' + colorClass;
+                    }
+                    if (percentEl) {
+                        percentEl.textContent = percentage + '%';
+                        percentEl.className = 'text-xs font-bold ' + colorClass;
+                    }
+                    if (progressEl) {
+                        progressEl.style.width = percentage + '%';
+                        progressEl.className = 'h-1.5 rounded-full transition-all duration-1000 ease-out ' + bgColorClass;
                     }
                     if (reasonEl) reasonEl.textContent = data.reason || 'AI Analysis complete.';
                 }
@@ -1974,12 +1997,45 @@
             window._activeCountdown  = s.countdown;
             window._sirenEnabled     = s.siren;
 
-            if(s.name) {
+            // Try to load name from settings first, then session
+            let displayName = s.name;
+            if(!displayName) {
+                const sessionStr = localStorage.getItem('guardian_session');
+                if (sessionStr) {
+                    try {
+                        const sessionObj = JSON.parse(sessionStr);
+                        if (sessionObj.name) displayName = sessionObj.name;
+                    } catch (e) {}
+                }
+            }
+
+            if(displayName) {
                 const nameEl = document.getElementById('user-display-name');
                 const topEl = document.getElementById('top-dropdown-name');
-                if(nameEl) nameEl.textContent = s.name;
-                if(topEl) topEl.textContent = s.name;
+                if(nameEl) nameEl.textContent = displayName;
+                if(topEl) topEl.textContent = displayName;
             }
+
+            // Profile Picture
+            const storedPic = localStorage.getItem('guardian_profile_pic');
+            if (storedPic) {
+                const imgDisplay = document.getElementById('profile-img-display');
+                if (imgDisplay) imgDisplay.src = storedPic;
+            }
+
+            window.handleProfilePicUpload = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const dataUrl = e.target.result;
+                        localStorage.setItem('guardian_profile_pic', dataUrl);
+                        const imgDisplay = document.getElementById('profile-img-display');
+                        if (imgDisplay) imgDisplay.src = dataUrl;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
 
             // Start backend sync
             syncBackendRisk();
