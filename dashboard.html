@@ -9,7 +9,7 @@
     <script>
         (function() {
             const session = localStorage.getItem('guardian_session');
-            if(!session) { window.location.replace('login.html'); }
+            if(!session) { window.location.replace('index.html'); }
         })();
     </script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -869,7 +869,7 @@
         window.logoutUser = () => {
             if(confirm('Are you sure you want to sign out?')) {
                 localStorage.removeItem('guardian_session');
-                window.location.replace('login.html');
+                window.location.replace('index.html');
             }
         };
         // ===== END SESSION =====
