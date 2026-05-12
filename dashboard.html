@@ -690,13 +690,21 @@
                             <label class="text-xs font-semibold text-on-surface-variant block mb-1">Bot Token <span class="text-error">*</span></label>
                             <input id="setting-bot-token" type="text" placeholder="e.g. 123456789:AABBcc..." 
                                 class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
-                            <p class="text-[10px] text-on-surface-variant mt-1">Get from @BotFather on Telegram</p>
+                            <p class="text-[10px] text-on-surface-variant mt-1">Get from @BotFather. Must look like <code class="bg-surface-variant px-1 rounded">123456789:ABCdef...</code></p>
+                            <div class="bg-error-container/20 border border-error/20 rounded p-2 mt-2 flex gap-2 items-start hidden" id="token-error-helper">
+                                <span class="material-symbols-outlined text-error text-[14px]">error</span>
+                                <p class="text-[10px] text-error leading-tight">If testing says "Unauthorized", your Bot Token is incorrect. Please copy the token exactly as provided by @BotFather.</p>
+                            </div>
                         </div>
                         <div>
                             <label class="text-xs font-semibold text-on-surface-variant block mb-1">Your Chat ID <span class="text-error">*</span></label>
                             <input id="setting-chat-id" type="text" placeholder="e.g. 123456789" 
                                 class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
                             <p class="text-[10px] text-on-surface-variant mt-1">Get from @userinfobot on Telegram</p>
+                            <div class="bg-primary-container/20 border border-primary/20 rounded p-2 mt-2 flex gap-2 items-start">
+                                <span class="material-symbols-outlined text-primary text-[14px]">info</span>
+                                <p class="text-[10px] text-primary leading-tight">If testing says "chat not found", you must open your custom bot in Telegram and send <b>/start</b> before it can message you!</p>
+                            </div>
                         </div>
                         <button id="btn-test-telegram" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-blue-700 transition flex items-center justify-center gap-2">
                             <span class="material-symbols-outlined text-sm">send</span> Test Telegram Connection
@@ -1215,7 +1223,8 @@
             
             // Try Telegram first
             const botTokenToUse = window._activeBotToken || TELEGRAM_BOT_TOKEN;
-            fetch(`https://api.telegram.org/bot${botTokenToUse}/sendMessage`, {
+            const cleanToken = botTokenToUse.replace(/^bot/i, '');
+            fetch(`https://api.telegram.org/bot${cleanToken}/sendMessage`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ chat_id: c.phone, text: "🚨 TEST ALERT from Silent Guardian! 🚨" })
@@ -1359,12 +1368,13 @@
                     const chatId = window._activeChatId || TELEGRAM_CHAT_ID;
                     
                     if (botToken && botToken !== "PASTE_YOUR_BOT_TOKEN_HERE") {
+                        const cleanToken = botToken.replace(/^bot/i, '');
                         const formData = new FormData();
                         formData.append('chat_id', chatId);
                         formData.append('voice', blob, 'emergency_evidence.webm');
                         formData.append('caption', "🚨 Emergency Audio Evidence Captured 🚨");
 
-                        fetch(`https://api.telegram.org/bot${botToken}/sendVoice`, {
+                        fetch(`https://api.telegram.org/bot${cleanToken}/sendVoice`, {
                             method: 'POST',
                             body: formData
                         }).then(res => {
@@ -1628,7 +1638,8 @@
             // --- STEP 6: Send Telegram to PRIMARY channel ---
             const sendTelegram = (chatId, msg) => {
                 const botTokenToUse = window._activeBotToken || TELEGRAM_BOT_TOKEN;
-                return fetch(`https://api.telegram.org/bot${botTokenToUse}/sendMessage`, {
+                const cleanToken = botTokenToUse.replace(/^bot/i, '');
+                return fetch(`https://api.telegram.org/bot${cleanToken}/sendMessage`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
@@ -1920,14 +1931,33 @@
             const resultEl = document.getElementById('telegram-test-result');
             if(!token || !chatId) { if(resultEl) { resultEl.textContent = '⚠️ Please fill in both fields first.'; resultEl.className = 'text-xs text-center font-semibold text-yellow-500'; resultEl.classList.remove('hidden'); } return; }
             if(resultEl) { resultEl.textContent = '⏳ Sending test message...'; resultEl.className = 'text-xs text-center font-semibold text-blue-500'; resultEl.classList.remove('hidden'); }
-            fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+            
+            const cleanToken = token.replace(/^bot/i, '');
+            fetch('https://api.telegram.org/bot' + cleanToken + '/sendMessage', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ chat_id: chatId, text: '✅ Silent Guardian Test\n\nYour Telegram bot is connected and working! 🛡️' })
             }).then(r => r.json()).then(data => {
                 if(data.ok) { resultEl.textContent = '✅ Test message sent! Check your Telegram.'; resultEl.className = 'text-xs text-center font-semibold text-green-600'; }
-                else { resultEl.textContent = '❌ Failed: ' + (data.description || 'Invalid token or chat ID'); resultEl.className = 'text-xs text-center font-semibold text-error'; }
-            }).catch(() => { resultEl.textContent = '❌ Network error. Check your connection.'; resultEl.className = 'text-xs text-center font-semibold text-error'; });
+                else { 
+                    let errorMsg = data.description || 'Invalid token or chat ID';
+                    if (errorMsg.toLowerCase().includes('chat not found')) {
+                        errorMsg += ' (Open your bot in Telegram and send /start first! Also ensure Chat ID is a number)';
+                        document.getElementById('token-error-helper')?.classList.add('hidden');
+                    } else if (errorMsg.toLowerCase().includes('unauthorized')) {
+                        errorMsg += ' (Your Bot Token is completely invalid. Check @BotFather)';
+                        document.getElementById('token-error-helper')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('token-error-helper')?.classList.add('hidden');
+                    }
+                    resultEl.textContent = '❌ Failed: ' + errorMsg; 
+                    resultEl.className = 'text-xs text-center font-semibold text-error'; 
+                }
+            }).catch(() => { 
+                resultEl.textContent = '❌ Network error. Check your connection.'; 
+                resultEl.className = 'text-xs text-center font-semibold text-error'; 
+                document.getElementById('token-error-helper')?.classList.add('hidden');
+            });
         });
 
         // Save Settings
