@@ -199,6 +199,9 @@
             <h1 class="font-display-lg text-headline-md text-primary">Guardian</h1>
             <p class="font-label-md text-label-md text-on-surface-variant mt-stack-sm">Guardian AI</p>
             <p class="font-label-sm text-label-sm text-on-surface-variant">System Status: Secured</p>
+            <p id="telegram-bot-status" class="font-label-sm text-label-sm text-on-surface-variant flex items-center mt-1">
+                <span class="w-2 h-2 rounded-full bg-error mr-2"></span> Telegram: Setup Needed
+            </p>
         </div>
         <div class="flex-1 px-unit space-y-unit">
             <a class="flex items-center space-x-stack-md bg-primary-container text-on-primary-container rounded-lg mx-2 px-4 py-3 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
@@ -361,49 +364,101 @@
                             <span class="material-symbols-outlined text-secondary"
                                 style="font-variation-settings: 'FILL' 1;">record_voice_over</span>
                             <span class="font-label-md text-label-md text-on-surface">Voice Trigger</span>
+                            <div class="w-8 h-4 bg-surface-variant rounded-full relative transition-colors duration-300" id="voice-toggle-bg">
+                                <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300" id="voice-toggle-dot"></div>
+                            </div>
+                        </div>
+                        <div id="btn-guardian-mode"
+                            class="bg-error-container border border-error/20 shadow-sm p-stack-md rounded-xl flex flex-col items-center justify-center text-center space-y-stack-sm cursor-pointer hover:bg-error-container/80 transition-colors">
+                            <span class="material-symbols-outlined text-error"
+                                style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+                            <span class="font-label-md text-label-md text-on-surface">Guardian Mode</span>
                             <div class="w-8 h-4 bg-primary rounded-full relative">
                                 <div class="absolute right-0.5 top-0.5 w-3 h-3 bg-white rounded-full"></div>
                             </div>
-                        </div>
-                        <div
-                            class="bg-surface-container-lowest border border-outline-variant shadow-sm p-stack-md rounded-xl flex flex-col items-center justify-center text-center space-y-stack-sm cursor-pointer hover:bg-surface-variant transition-colors">
-                            <span class="material-symbols-outlined text-primary"
-                                style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
-                            <span class="font-label-md text-label-md text-on-surface">Guardian Mode</span>
-                            <div class="w-8 h-4 bg-surface-variant rounded-full relative">
-                                <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-outline rounded-full"></div>
-                            </div>
+                            <span class="text-[10px] text-error font-bold animate-pulse">ALWAYS ACTIVE</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Bottom Section (Alerts & Contacts) -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-stack-lg">
-                <!-- Recent Alerts -->
-                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-stack-lg">
-                    <div class="flex items-center justify-between mb-stack-md">
-                        <div class="flex items-center space-x-stack-sm">
-                            <span class="material-symbols-outlined text-on-surface">campaign</span>
-                            <h3 class="font-headline-md text-headline-md text-on-surface">Recent Alerts</h3>
+            <!-- Bottom Section: Safety Status, Alerts & Contacts -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+                <!-- 1. Security Status (System Health) -->
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl p-6 hover:shadow-2xl transition-all duration-300">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">verified_user</span>
+                            <h3 class="font-bold text-lg text-on-surface">Security Pulse</h3>
                         </div>
-                        <button class="text-primary font-label-sm text-label-sm">View All</button>
+                        <span class="text-[10px] font-bold text-primary-container bg-primary px-2 py-0.5 rounded-full">REAL-TIME</span>
                     </div>
-                    <div id="recent-alerts-container" class="space-y-stack-sm">
-                        <p class="text-sm text-on-surface-variant text-center py-4">Scanning area for local alerts...</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-surface rounded-xl border border-outline-variant/30">
+                            <div class="flex items-center space-x-3">
+                                <div id="status-geo" class="w-2.5 h-2.5 rounded-full bg-error animate-pulse"></div>
+                                <span class="text-sm font-medium text-on-surface-variant">GPS Navigation</span>
+                            </div>
+                            <span class="text-[10px] text-on-surface-variant/60 font-mono">ENCRYPTED</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-surface rounded-xl border border-outline-variant/30">
+                            <div class="flex items-center space-x-3">
+                                <div id="status-mic" class="w-2.5 h-2.5 rounded-full bg-error"></div>
+                                <span class="text-sm font-medium text-on-surface-variant">Voice AI Monitor</span>
+                            </div>
+                            <span class="text-[10px] text-on-surface-variant/60 font-mono">ACTIVE</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-surface rounded-xl border border-outline-variant/30">
+                            <div class="flex items-center space-x-3">
+                                <div id="status-sensor" class="w-2.5 h-2.5 rounded-full bg-error"></div>
+                                <span class="text-sm font-medium text-on-surface-variant">Motion Sensors</span>
+                            </div>
+                            <span class="text-[10px] text-on-surface-variant/60 font-mono">ARMED</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-surface rounded-xl border border-outline-variant/30">
+                            <div class="flex items-center space-x-3">
+                                <div id="status-telegram" class="w-2.5 h-2.5 rounded-full bg-error"></div>
+                                <span class="text-sm font-medium text-on-surface-variant">Emergency Link</span>
+                            </div>
+                            <span class="text-[10px] text-on-surface-variant/60 font-mono">STABLE</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant mt-6 text-center italic opacity-70">
+                        "Your safety is our priority. Click screen to initialize all sensors."
+                    </p>
+                </div>
+
+                <!-- 2. Intelligence Feed (Recent Alerts) -->
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl p-6 hover:shadow-2xl transition-all duration-300 flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <span class="material-symbols-outlined text-secondary p-2 bg-secondary/10 rounded-lg">rss_feed</span>
+                            <h3 class="font-bold text-lg text-on-surface">Intelligence Feed</h3>
+                        </div>
+                        <button class="text-secondary text-xs font-bold hover:underline">HISTORY</button>
+                    </div>
+                    <div id="recent-alerts-container" class="space-y-3 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar">
+                        <div class="flex items-center justify-center h-full py-12">
+                            <div class="text-center">
+                                <span class="material-symbols-outlined text-outline-variant text-4xl mb-2 animate-spin-slow">hourglass_empty</span>
+                                <p class="text-sm text-on-surface-variant">Scanning vicinity for risks...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <!-- Emergency Contacts -->
-                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-stack-lg">
-                    <div class="flex items-center justify-between mb-stack-md">
-                        <div class="flex items-center space-x-stack-sm">
-                            <span class="material-symbols-outlined text-on-surface">group</span>
-                            <h3 class="font-headline-md text-headline-md text-on-surface">Active Contacts</h3>
+
+                <!-- 3. Guardian Circle (Active Contacts) -->
+                <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl p-6 hover:shadow-2xl transition-all duration-300">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">shield_with_heart</span>
+                            <h3 class="font-bold text-lg text-on-surface">Guardian Circle</h3>
                         </div>
-                        <button id="btn-add-contact" class="text-primary font-label-sm text-label-sm flex items-center">
-                            <span class="material-symbols-outlined text-sm mr-1">add</span> Add
+                        <button id="btn-add-contact" class="bg-primary text-on-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center hover:opacity-90 transition-opacity">
+                            <span class="material-symbols-outlined text-xs mr-1">person_add</span> ADD
                         </button>
                     </div>
-                    <div id="contacts-container" class="grid grid-cols-2 gap-stack-sm">
+                    <div id="contacts-container" class="space-y-3 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar">
                         <!-- Populated by JS -->
                     </div>
                 </div>
@@ -504,9 +559,37 @@
 
     <!-- Scripts -->
     <script>
-        // CONFIGURATION (Add your Telegram Bot info here)
-        const TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"; // e.g. "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
-        const TELEGRAM_CHAT_ID = "YOUR_CHAT_ID_HERE";     // e.g. "123456789"
+        // ==========================================
+        // 🚨 HACKATHON CONFIGURATION (IMPORTANT)
+        // ==========================================
+        // 1. Get your Token from @BotFather on Telegram
+        // 2. Get your Chat ID from @userinfobot on Telegram
+        const TELEGRAM_BOT_TOKEN = "8473092649:AAGTJJFy-UK-SnOvf9M965BRWkX2Vqhfc7o"; 
+        const TELEGRAM_CHAT_ID   = "8273329537"; 
+        // ==========================================
+
+        // Bot Status Indicator Logic
+        const updateBotStatus = () => {
+            const statusEl = document.getElementById('telegram-bot-status');
+            const dotHealth = document.getElementById('status-telegram');
+            if (TELEGRAM_BOT_TOKEN && TELEGRAM_BOT_TOKEN !== "PASTE_YOUR_BOT_TOKEN_HERE") {
+                statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Telegram: Bot Active';
+                if(dotHealth) dotHealth.classList.replace('bg-error', 'bg-green-500');
+            } else {
+                statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-error mr-2"></span> Telegram: Setup Needed';
+                if(dotHealth) dotHealth.classList.replace('bg-green-500', 'bg-error');
+            }
+        };
+        updateBotStatus();
+
+        // System Health Tracking
+        const updateHealth = (id, isActive) => {
+            const el = document.getElementById(id);
+            if(el) {
+                if(isActive) el.classList.replace('bg-error', 'bg-green-500');
+                else el.classList.replace('bg-green-500', 'bg-error');
+            }
+        };
 
         // Fake Call Logic
         const fakeCallOverlay = document.getElementById('fake-call-overlay');
@@ -693,6 +776,7 @@
                 window.currentLocation = {lat, lng};
                 
                 if (isFirstLocation) {
+                    updateHealth('status-geo', true);
                     map.setView([lat, lng], 14);
                     
                     // Live Location Blue Marker
@@ -811,6 +895,32 @@
             }
         };
 
+        window.testContact = (index) => {
+            const contacts = JSON.parse(localStorage.getItem('guardian_contacts') || '[]');
+            if(!contacts[index]) return;
+            const c = contacts[index];
+            
+            // Try Telegram first
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ chat_id: c.phone, text: "🚨 TEST ALERT from Silent Guardian! 🚨" })
+            })
+            .then(async res => {
+                const data = await res.json();
+                if(res.ok) {
+                    alert(`✅ Alert successfully sent to ${c.name}!`);
+                } else {
+                    // Silent fallback to SMS if Telegram fails (e.g. if phone number was used instead of ID)
+                    window.location.href = `sms:${c.phone}?body=${encodeURIComponent("🚨 TEST ALERT from Silent Guardian! 🚨")}`;
+                }
+            })
+            .catch(err => {
+                // Network error fallback
+                window.location.href = `sms:${c.phone}?body=${encodeURIComponent("🚨 TEST ALERT from Silent Guardian! 🚨")}`;
+            });
+        };
+
         const loadContacts = () => {
             const contacts = JSON.parse(localStorage.getItem('guardian_contacts') || '[]');
             const container = document.getElementById('contacts-container');
@@ -830,6 +940,9 @@
                         </div>
                     </div>
                     <div class="flex space-x-1 flex-shrink-0">
+                        <button onclick="testContact(${index})" class="text-green-500 hover:text-green-400 transition-colors p-1" title="Test Alert">
+                            <span class="material-symbols-outlined text-sm">send</span>
+                        </button>
                         <button onclick="editContact(${index})" class="text-secondary hover:text-primary transition-colors p-1" title="Edit">
                             <span class="material-symbols-outlined text-sm">edit</span>
                         </button>
@@ -915,6 +1028,8 @@
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.onstop = () => {
                 const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                
+                // 1. Local Download as backup
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -922,6 +1037,25 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+
+                // 2. Upload Audio to Telegram (Advanced Requirement)
+                const botToken = TELEGRAM_BOT_TOKEN;
+                const chatId = TELEGRAM_CHAT_ID;
+                
+                if (botToken && botToken !== "PASTE_YOUR_BOT_TOKEN_HERE") {
+                    const formData = new FormData();
+                    formData.append('chat_id', chatId);
+                    formData.append('voice', blob, 'emergency_evidence.webm');
+                    formData.append('caption', "🚨 Emergency Audio Evidence Captured 🚨");
+
+                    fetch(`https://api.telegram.org/bot${botToken}/sendVoice`, {
+                        method: 'POST',
+                        body: formData
+                    }).then(res => {
+                        if(res.ok) console.log("Audio sent to Telegram successfully");
+                    }).catch(err => console.log("Telegram Audio Upload Failed", err));
+                }
+
                 audioChunks = [];
             };
         }).catch(err => console.log("Mic access denied for MediaRecorder"));
@@ -992,9 +1126,19 @@
                 recognition.start();
                 isListening = true;
                 const btn = document.getElementById('btn-voice-trigger');
+                const dot = document.getElementById('voice-toggle-dot');
+                const bg = document.getElementById('voice-toggle-bg');
                 if(btn) {
                     btn.classList.add('animate-pulse', 'bg-error-container');
                     btn.querySelector('span.text-on-surface').textContent = "Listening (Auto)...";
+                    if(dot) {
+                        dot.classList.remove('left-0.5');
+                        dot.classList.add('right-0.5');
+                    }
+                    if(bg) {
+                        bg.classList.remove('bg-surface-variant');
+                        bg.classList.add('bg-primary');
+                    }
                 }
                 console.log("Voice recognition auto-started successfully.");
             } catch(e) {
@@ -1007,24 +1151,82 @@
 
         // Fallback: Start automatically on the very first click ANYWHERE on the page
         // (Browsers sometimes require a click before allowing microphone access)
-        document.body.addEventListener('click', startListeningAutomatically, { once: true });
+        document.body.addEventListener('click', () => {
+            startListeningAutomatically();
+            updateHealth('status-mic', true);
+            
+            // 🚨 MOBILE SENSOR PERMISSION (For iOS/Modern Browsers)
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', detectAbnormalActivity);
+                            updateHealth('status-sensor', true);
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // Non-iOS or older browsers
+                window.addEventListener('devicemotion', detectAbnormalActivity);
+                updateHealth('status-sensor', true);
+            }
+        }, { once: true });
+
+        // Abnormal Activity Detection logic (Accelerometer)
+        const detectAbnormalActivity = (event) => {
+            const acc = event.accelerationIncludingGravity;
+            if (!acc) return;
+
+            // Calculate overall magnitude of movement (G-force)
+            const magnitude = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+            
+            // Threshold for abnormal activity (Sudden run or struggle)
+            // 15 m/s^2 is significantly higher than walking (9.8) but lower than a crash (30+)
+            if (magnitude > 25) { 
+                triggerEmergencyResponse("Abnormal Activity Detected (Sudden Movement/Shaking)");
+                // Throttling to prevent double-triggering
+                window.removeEventListener('devicemotion', detectAbnormalActivity);
+                setTimeout(() => window.addEventListener('devicemotion', detectAbnormalActivity), 10000);
+            }
+        };
 
         // Keep the button functional as a manual toggle just in case
         document.getElementById('btn-voice-trigger')?.addEventListener('click', (e) => {
             e.stopPropagation(); // prevent triggering the body click twice
             const btn = document.getElementById('btn-voice-trigger');
+            const dot = document.getElementById('voice-toggle-dot');
+            const bg = document.getElementById('voice-toggle-bg');
+            
             if(!recognition) return alert("Speech Recognition not supported.");
             
             if(!isListening) {
-                recognition.start();
-                isListening = true;
-                btn.classList.add('animate-pulse', 'bg-error-container');
-                btn.querySelector('span.text-on-surface').textContent = "Listening...";
+                try {
+                    recognition.start();
+                    isListening = true;
+                    btn.classList.add('animate-pulse', 'bg-error-container');
+                    btn.querySelector('span.text-on-surface').textContent = "Listening...";
+                    if(dot) {
+                        dot.classList.remove('left-0.5');
+                        dot.classList.add('right-0.5');
+                    }
+                    if(bg) {
+                        bg.classList.remove('bg-surface-variant');
+                        bg.classList.add('bg-primary');
+                    }
+                } catch(err) { console.log("Recognition start failed", err); }
             } else {
                 recognition.stop();
                 isListening = false;
                 btn.classList.remove('animate-pulse', 'bg-error-container');
                 btn.querySelector('span.text-on-surface').textContent = "Voice Trigger";
+                if(dot) {
+                    dot.classList.remove('right-0.5');
+                    dot.classList.add('left-0.5');
+                }
+                if(bg) {
+                    bg.classList.remove('bg-primary');
+                    bg.classList.add('bg-surface-variant');
+                }
             }
         });
 
