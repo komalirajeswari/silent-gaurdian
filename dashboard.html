@@ -1202,7 +1202,12 @@
             
             // Threshold for abnormal activity (running very fast, sudden fall, or physical struggle)
             // Normal walking is ~2-5 m/s². Sprinting or thrashing usually spikes above 15 m/s².
-            if (magnitude > 15) {
+            const sensitivity = window._activeSensitivity ? parseInt(window._activeSensitivity, 10) : 25;
+            // Since this uses pure acceleration (without gravity), we adjust the scale slightly
+            // A slider value of 25 (default) means we trigger at ~15m/s²
+            const threshold = sensitivity - 10; 
+            
+            if (magnitude > threshold) {
                 const now = Date.now();
                 if (now - lastSpikeTime < 2000) { // Spikes must be within 2 seconds of each other
                     motionSpikeCount++;
@@ -1220,24 +1225,6 @@
                 }
             }
         };
-
-        // Initialize motion sensors
-        if (window.DeviceMotionEvent) {
-            window.addEventListener('devicemotion', handleMotion);
-            
-            // iOS 13+ requires explicit user interaction to request sensor permission
-            document.body.addEventListener('click', () => {
-                if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                    DeviceMotionEvent.requestPermission()
-                        .then(permissionState => {
-                            if (permissionState === 'granted') {
-                                window.addEventListener('devicemotion', handleMotion);
-                            }
-                        })
-                        .catch(console.error);
-                }
-            }, { once: true });
-        }
 
         // Emergency Contacts Logic
         window.editContact = (index) => {
@@ -1407,8 +1394,8 @@
                 document.body.removeChild(a);
 
                 // 2. Upload Audio to Telegram (Advanced Requirement)
-                const botToken = TELEGRAM_BOT_TOKEN;
-                const chatId = TELEGRAM_CHAT_ID;
+                const botToken = window._activeBotToken || TELEGRAM_BOT_TOKEN;
+                const chatId = window._activeChatId || TELEGRAM_CHAT_ID;
                 
                 if (botToken && botToken !== "PASTE_YOUR_BOT_TOKEN_HERE") {
                     const formData = new FormData();
@@ -1452,7 +1439,8 @@
                 transcript = transcript.trim().toLowerCase();
                 
                 // 1. Keyword & Emotion checks (SUPER FAST - Runs instantly as you speak)
-                const keywords = ['help me', "i'm not safe", 'im not safe', 'emergency', 'help', 'kapadandi','bachav','police'];
+                const defaultKeywords = ['help me', "i'm not safe", 'im not safe', 'emergency', 'help', 'kapadandi','bachav','police'];
+                const keywords = window._activeKeywords && window._activeKeywords.length > 0 ? window._activeKeywords : defaultKeywords;
                 const hurryEmotions = ['hurry', 'quick', 'fast', 'now', 'please hurry', 'running','please help'];
                 const sadEmotions = ['sad', 'crying', 'scared', 'terrified', 'afraid'];
                 
@@ -1528,35 +1516,17 @@
                 DeviceMotionEvent.requestPermission()
                     .then(permissionState => {
                         if (permissionState === 'granted') {
-                            window.addEventListener('devicemotion', detectAbnormalActivity);
+                            window.addEventListener('devicemotion', handleMotion);
                             updateHealth('status-sensor', true);
                         }
                     })
                     .catch(console.error);
             } else {
                 // Non-iOS or older browsers
-                window.addEventListener('devicemotion', detectAbnormalActivity);
+                window.addEventListener('devicemotion', handleMotion);
                 updateHealth('status-sensor', true);
             }
         }, { once: true });
-
-        // Abnormal Activity Detection logic (Accelerometer)
-        const detectAbnormalActivity = (event) => {
-            const acc = event.accelerationIncludingGravity;
-            if (!acc) return;
-
-            // Calculate overall magnitude of movement (G-force)
-            const magnitude = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-            
-            // Threshold for abnormal activity (Sudden run or struggle)
-            // 15 m/s^2 is significantly higher than walking (9.8) but lower than a crash (30+)
-            if (magnitude > 25) { 
-                triggerEmergencyResponse("Abnormal Activity Detected (Sudden Movement/Shaking)");
-                // Throttling to prevent double-triggering
-                window.removeEventListener('devicemotion', detectAbnormalActivity);
-                setTimeout(() => window.addEventListener('devicemotion', detectAbnormalActivity), 10000);
-            }
-        };
 
         // Keep the button functional as a manual toggle just in case
         document.getElementById('btn-voice-trigger')?.addEventListener('click', (e) => {
@@ -1653,19 +1623,21 @@
 
             // --- STEP 6: Send Telegram to PRIMARY channel ---
             const sendTelegram = (chatId, msg) => {
-                return fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                const botTokenToUse = window._activeBotToken || TELEGRAM_BOT_TOKEN;
+                return fetch(`https://api.telegram.org/bot${botTokenToUse}/sendMessage`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
                 }).then(r => r.ok).catch(() => false);
             };
 
-            // Send to hardcoded Telegram channel first
-            sendTelegram(TELEGRAM_CHAT_ID, sosMessage).then(ok => {
+            // Send to primary configured Telegram channel first
+            const primaryChatId = window._activeChatId || TELEGRAM_CHAT_ID;
+            sendTelegram(primaryChatId, sosMessage).then(ok => {
                 addAction('send', `Telegram Alert → Guardian Channel: ${ok ? '✅ Delivered' : '⚠️ Retrying...'}`, ok ? 'text-green-600' : 'text-yellow-500');
                 if(!ok) {
                     // Retry once
-                    setTimeout(() => sendTelegram(TELEGRAM_CHAT_ID, sosMessage), 3000);
+                    setTimeout(() => sendTelegram(primaryChatId, sosMessage), 3000);
                 }
             });
 
