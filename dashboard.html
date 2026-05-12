@@ -201,41 +201,28 @@
 <body class="bg-background text-on-background min-h-screen flex flex-col md:flex-row">
     <!-- SideNavBar (Desktop) -->
     <nav
-        class="hidden md:flex flex-col h-full py-stack-lg bg-surface-container-lowest border-r border-outline-variant shadow-sm fixed left-0 top-0 w-64 z-40">
-        <div class="px-margin-mobile mb-margin-desktop">
-            <h1 class="font-display-lg text-headline-md text-primary">Guardian</h1>
-            <p class="font-label-md text-label-md text-on-surface-variant mt-stack-sm">Guardian AI</p>
-            <p class="font-label-sm text-label-sm text-on-surface-variant">System Status: Secured</p>
-            <p id="telegram-bot-status" class="font-label-sm text-label-sm text-on-surface-variant flex items-center mt-1">
-                <span class="w-2 h-2 rounded-full bg-error mr-2"></span> Telegram: Setup Needed
-            </p>
-            <!-- Logged-in user display -->
-            <div class="mt-3 flex items-center gap-2 bg-primary/10 rounded-lg px-3 py-2">
-                <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings:'FILL' 1">account_circle</span>
-                <p id="user-display-name" class="text-xs font-bold text-primary truncate">Loading...</p>
-                <button onclick="logoutUser()" title="Logout" class="ml-auto text-on-surface-variant hover:text-error transition">
-                    <span class="material-symbols-outlined text-sm">logout</span>
-                </button>
-            </div>
+        class="hidden md:flex flex-col h-full py-stack-lg bg-surface border-r border-outline-variant shadow-sm fixed left-0 top-0 w-64 z-40">
+        <div class="flex items-center px-6 py-4 mb-4">
+            <span class="material-symbols-outlined text-primary text-4xl mr-2" style="font-variation-settings:'FILL' 1">shield_with_heart</span>
+            <h1 class="font-display-lg text-headline-md text-primary font-extrabold tracking-tight">Guardian</h1>
+            <p id="telegram-bot-status" class="hidden"></p>
         </div>
-        <div class="flex-1 px-unit space-y-unit">
-            <a class="flex items-center space-x-stack-md bg-primary-container text-on-primary-container rounded-lg mx-2 px-4 py-3 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
-                href="#">
+        <div class="flex-1 px-unit space-y-2">
+            <a onclick="window.scrollTo(0,0)" class="flex items-center space-x-stack-md bg-primary/10 text-primary font-bold rounded-lg mx-2 px-4 py-3 transition-all duration-300 ease-in-out cursor-pointer">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
                 <span class="font-label-md text-label-md">Dashboard</span>
             </a>
-            <a class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20"
-                href="#">
-                <span class="material-symbols-outlined">location_searching</span>
-                <span class="font-label-md text-label-md">Live Track</span>
+            <a onclick="document.getElementById('guardian-modal').classList.remove('hidden')" class="flex items-center space-x-stack-md text-on-surface-variant hover:bg-primary/5 hover:text-primary px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out cursor-pointer">
+                <span class="material-symbols-outlined">shield_with_heart</span>
+                <span class="font-label-md text-label-md">Guardian Circle</span>
             </a>
-            <a id="btn-fakecall-desktop" class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20 cursor-pointer">
+            <a onclick="document.getElementById('fake-call-overlay').classList.remove('hidden')" id="btn-fakecall-desktop" class="flex items-center space-x-stack-md text-on-surface-variant hover:bg-primary/5 hover:text-primary px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out cursor-pointer">
                 <span class="material-symbols-outlined">phone_forwarded</span>
                 <span class="font-label-md text-label-md">Fake Call</span>
             </a>
-            <a id="btn-admin" class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20 cursor-pointer">
-                <span class="material-symbols-outlined">admin_panel_settings</span>
-                <span class="font-label-md text-label-md">Alert History</span>
+            <a id="btn-admin" class="flex items-center space-x-stack-md text-on-surface-variant hover:bg-primary/5 hover:text-primary px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out cursor-pointer">
+                <span class="material-symbols-outlined">rss_feed</span>
+                <span class="font-label-md text-label-md">Intelligence Feed</span>
             </a>
         </div>
         <div class="px-margin-mobile mt-auto mb-stack-lg">
@@ -245,24 +232,15 @@
                 <span>EMERGENCY SOS</span>
             </button>
         </div>
-        <div class="px-unit space-y-unit">
-            <a id="btn-open-settings" class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20 cursor-pointer"
-                href="#">
-                <span class="material-symbols-outlined">settings</span>
-                <span class="font-label-md text-label-md">Settings</span>
-            </a>
-            <a id="btn-open-support" class="flex items-center space-x-stack-md text-on-surface-variant hover:text-on-surface px-4 py-3 rounded-lg mx-2 transition-all duration-300 ease-in-out hover:bg-surface-variant/20 cursor-pointer"
-                href="#">
-                <span class="material-symbols-outlined">contact_support</span>
-                <span class="font-label-md text-label-md">Support</span>
-            </a>
+        <div class="px-unit space-y-unit hidden">
+            <!-- Removed settings and support from here, moved to profile dropdown -->
         </div>
     </nav>
     <!-- Main Content Canvas -->
     <main class="flex-1 md:ml-64 pb-24 md:pb-0 relative min-h-screen">
         <!-- TopAppBar (Mobile & Desktop Header) -->
         <header
-            class="fixed top-0 w-full md:w-[calc(100%-16rem)] z-30 bg-surface/90 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16">
+            class="fixed top-0 w-full md:w-[calc(100%-16rem)] z-30 bg-surface/90 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-4 md:px-6 h-16">
             <div class="md:hidden">
                 <span
                     class="font-display-lg text-headline-md font-extrabold text-primary tracking-tight">Guardian</span>
@@ -271,29 +249,39 @@
                 <h2 class="font-headline-md text-headline-md text-on-surface">Dashboard</h2>
             </div>
             <div class="flex items-center space-x-stack-md">
-                <button
-                    class="p-2 text-on-surface-variant hover:bg-surface-variant transition-colors rounded-full scale-95 active:opacity-80 transition-all">
+                <button onclick="document.getElementById('admin-modal').classList.remove('hidden')"
+                    class="p-2 text-on-surface-variant hover:bg-surface-variant transition-colors rounded-full scale-95 active:opacity-80 transition-all cursor-pointer">
                     <span class="material-symbols-outlined">notifications</span>
                 </button>
-                <button
+                <!-- <button
                     class="p-2 text-primary font-bold hover:bg-surface-variant transition-colors rounded-full scale-95 active:opacity-80 transition-all">
                     <span class="material-symbols-outlined"
                         style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
-                </button>
-                <div
-                    class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant ml-stack-sm">
-                    <img alt="User profile settings" class="w-full h-full object-cover"
-                        data-alt="A portrait of a confident person serving as a user profile avatar. The lighting is soft and neutral, fitting the modern, calm authority visual style of the Guardian application. The background is a subtle dark tone matching the interface surface. The overall mood is reliable and approachable."
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu2TTVlMNxeMqhRxwPxCpVxFt-ya5K7f-xpsJ7tvU4xoS5go3Iyk_CLUV8CxRdtDqgaCOhkLAp2JWTc3payDYvoSSFpt-twbR8kzSaGH7_xgGiKR5rlfhg5ZIQ2-qVyCRWbTOBEVIpcyAQJrl_2iYjjJ0N-jC257_ILK1MZYHtyDizene8aN5_Bu6gKGqIKuBVAEjAdIPsLjuqNLbArQfYCA2EEjsogi3RqHALtf_IDvxpHd8479wpyAd0PgSdbPKOkJXOS_P1739r" />
+                </button> -->
+                <div class="relative group cursor-pointer">
+                    <div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant ml-stack-sm cursor-pointer">
+                        <img alt="User profile settings" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu2TTVlMNxeMqhRxwPxCpVxFt-ya5K7f-xpsJ7tvU4xoS5go3Iyk_CLUV8CxRdtDqgaCOhkLAp2JWTc3payDYvoSSFpt-twbR8kzSaGH7_xgGiKR5rlfhg5ZIQ2-qVyCRWbTOBEVIpcyAQJrl_2iYjjJ0N-jC257_ILK1MZYHtyDizene8aN5_Bu6gKGqIKuBVAEjAdIPsLjuqNLbArQfYCA2EEjsogi3RqHALtf_IDvxpHd8479wpyAd0PgSdbPKOkJXOS_P1739r" />
+                    </div>
+                    <!-- Dropdown -->
+                    <div class="absolute right-0 top-full mt-2 w-48 bg-surface border border-outline-variant rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-outline-variant bg-surface-variant/30">
+                            <p class="text-sm font-bold text-on-surface truncate" id="top-dropdown-name">Loading...</p>
+                            <p class="text-[10px] text-on-surface-variant">Active Session</p>
+                        </div>
+                        <a onclick="document.getElementById('settings-modal').classList.remove('hidden')" class="block px-4 py-2 text-sm text-on-surface-variant hover:bg-primary/10 hover:text-primary cursor-pointer flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">settings</span> Settings</a>
+                        <a onclick="document.getElementById('support-modal').classList.remove('hidden')" class="block px-4 py-2 text-sm text-on-surface-variant hover:bg-primary/10 hover:text-primary cursor-pointer flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">tune</span> Support</a>
+                        <a onclick="logoutUser()" class="block px-4 py-2 text-sm text-error hover:bg-error/10 cursor-pointer flex items-center gap-2 border-t border-outline-variant"><span class="material-symbols-outlined text-[18px]">logout</span> Log Out</a>
+                    </div>
                 </div>
             </div>
         </header>
         <!-- Dashboard Content -->
-        <div class="pt-24 px-margin-mobile md:px-margin-desktop max-w-[1200px] mx-auto space-y-stack-lg">
+        <div class="pt-24 px-4 md:px-6 w-full space-y-6">
             <!-- Hero / Map Section (Bento Grid Style) -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-lg">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Map Card -->
-                <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative h-[450px] shadow-sm">
+                <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative h-full min-h-[450px] shadow-sm">
                     <!-- The map fills the ENTIRE card -->
                     <div id="live-map" class="absolute inset-0 w-full h-full z-0"></div>
 
@@ -322,7 +310,7 @@
                 </div>
 
                 <!-- Right Column (AI & Toggles) -->
-                <div class="space-y-stack-lg flex flex-col justify-between">
+                <div class="space-y-6 flex flex-col justify-between">
                     <!-- Risk AI Widget -->
                     <div
                         class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-stack-lg relative overflow-hidden flex-1">
@@ -380,90 +368,38 @@
                             <span class="text-[10px] text-error font-bold animate-pulse">ALWAYS ACTIVE</span>
                         </div>
                     </div>
-                </div>
-            </div>
-            <!-- Bottom Section: Safety Status, Alerts & Contacts -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-                <!-- 1. Security Status (System Health) -->
-                <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl p-6 hover:shadow-2xl transition-all duration-300">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center space-x-3">
-                            <span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">verified_user</span>
-                            <h3 class="font-bold text-lg text-on-surface">Security Pulse</h3>
-                        </div>
-                        <span class="text-[10px] font-bold text-primary-container bg-primary px-2 py-0.5 rounded-full">REAL-TIME</span>
-                    </div>
                     
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-3 bg-surface rounded-xl border border-outline-variant/30">
-                            <div class="flex items-center space-x-3">
-                                <div id="status-geo" class="w-2.5 h-2.5 rounded-full bg-error animate-pulse"></div>
-                                <span class="text-sm font-medium text-on-surface-variant">GPS Navigation</span>
+                    <!-- Security Pulse Widget (Small) -->
+                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-4 relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="material-symbols-outlined text-primary text-sm">verified_user</span>
+                                <h3 class="font-bold text-sm text-on-surface">Security Pulse</h3>
                             </div>
-                            <span class="text-[10px] text-on-surface-variant/60 font-mono">ENCRYPTED</span>
+                            <span class="text-[8px] font-bold text-primary-container bg-primary px-1.5 py-0.5 rounded-full">LIVE</span>
                         </div>
-                        <div class="flex items-center justify-between p-3 bg-surface rounded-xl border border-outline-variant/30">
-                            <div class="flex items-center space-x-3">
-                                <div id="status-mic" class="w-2.5 h-2.5 rounded-full bg-error"></div>
-                                <span class="text-sm font-medium text-on-surface-variant">Voice AI Monitor</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex items-center space-x-2 p-2 bg-surface rounded-lg border border-outline-variant/30">
+                                <div id="status-geo" class="w-1.5 h-1.5 rounded-full bg-error animate-pulse flex-shrink-0"></div>
+                                <span class="text-xs text-on-surface-variant truncate">GPS Secure</span>
                             </div>
-                            <span class="text-[10px] text-on-surface-variant/60 font-mono">ACTIVE</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-surface rounded-xl border border-outline-variant/30">
-                            <div class="flex items-center space-x-3">
-                                <div id="status-sensor" class="w-2.5 h-2.5 rounded-full bg-error"></div>
-                                <span class="text-sm font-medium text-on-surface-variant">Motion Sensors</span>
+                            <div class="flex items-center space-x-2 p-2 bg-surface rounded-lg border border-outline-variant/30">
+                                <div id="status-mic" class="w-1.5 h-1.5 rounded-full bg-error flex-shrink-0"></div>
+                                <span class="text-xs text-on-surface-variant truncate">Mic Active</span>
                             </div>
-                            <span class="text-[10px] text-on-surface-variant/60 font-mono">ARMED</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-surface rounded-xl border border-outline-variant/30">
-                            <div class="flex items-center space-x-3">
-                                <div id="status-telegram" class="w-2.5 h-2.5 rounded-full bg-error"></div>
-                                <span class="text-sm font-medium text-on-surface-variant">Emergency Link</span>
+                            <div class="flex items-center space-x-2 p-2 bg-surface rounded-lg border border-outline-variant/30">
+                                <div id="status-sensor" class="w-1.5 h-1.5 rounded-full bg-error flex-shrink-0"></div>
+                                <span class="text-xs text-on-surface-variant truncate">Motion On</span>
                             </div>
-                            <span class="text-[10px] text-on-surface-variant/60 font-mono">STABLE</span>
-                        </div>
-                    </div>
-                    <p class="text-[11px] text-on-surface-variant mt-6 text-center italic opacity-70">
-                        "Your safety is our priority. Click screen to initialize all sensors."
-                    </p>
-                </div>
-
-                <!-- 2. Intelligence Feed (Recent Alerts) -->
-                <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl p-6 hover:shadow-2xl transition-all duration-300 flex flex-col">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center space-x-3">
-                            <span class="material-symbols-outlined text-secondary p-2 bg-secondary/10 rounded-lg">rss_feed</span>
-                            <h3 class="font-bold text-lg text-on-surface">Intelligence Feed</h3>
-                        </div>
-                        <button class="text-secondary text-xs font-bold hover:underline">HISTORY</button>
-                    </div>
-                    <div id="recent-alerts-container" class="space-y-3 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar">
-                        <div class="flex items-center justify-center h-full py-12">
-                            <div class="text-center">
-                                <span class="material-symbols-outlined text-outline-variant text-4xl mb-2 animate-spin-slow">hourglass_empty</span>
-                                <p class="text-sm text-on-surface-variant">Scanning vicinity for risks...</p>
+                            <div class="flex items-center space-x-2 p-2 bg-surface rounded-lg border border-outline-variant/30">
+                                <div id="status-telegram" class="w-1.5 h-1.5 rounded-full bg-error flex-shrink-0"></div>
+                                <span class="text-xs text-on-surface-variant truncate">Link Stable</span>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- 3. Guardian Circle (Active Contacts) -->
-                <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-xl p-6 hover:shadow-2xl transition-all duration-300">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center space-x-3">
-                            <span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">shield_with_heart</span>
-                            <h3 class="font-bold text-lg text-on-surface">Guardian Circle</h3>
-                        </div>
-                        <button id="btn-add-contact" class="bg-primary text-on-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center hover:opacity-90 transition-opacity">
-                            <span class="material-symbols-outlined text-xs mr-1">person_add</span> ADD
-                        </button>
-                    </div>
-                    <div id="contacts-container" class="space-y-3 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar">
-                        <!-- Populated by JS -->
                     </div>
                 </div>
             </div>
+
             <!-- Mobile Prominent SOS (Only visible on Mobile as per typical mobile layouts) -->
             <div class="md:hidden flex justify-center py-stack-lg">
                 <button id="btn-sos-mobile"
@@ -479,29 +415,26 @@
     <!-- BottomNavBar (Mobile Only) -->
     <nav
         class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 md:hidden bg-surface-container-lowest/90 backdrop-blur-xl border-t border-outline-variant shadow-lg rounded-t-xl">
-        <a class="flex flex-col items-center justify-center text-primary font-bold active:scale-90 transition-transform duration-200"
-            href="#">
+        <a onclick="window.scrollTo(0,0)" class="flex flex-col items-center justify-center text-primary font-bold active:scale-90 transition-transform duration-200 cursor-pointer">
             <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
             <span class="font-label-sm text-label-sm mt-1">Home</span>
         </a>
-        <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200"
-            href="#">
+        <a onclick="document.getElementById('live-map').scrollIntoView({behavior:'smooth'})" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200 cursor-pointer">
             <span class="material-symbols-outlined">share_location</span>
             <span class="font-label-sm text-label-sm mt-1">Location</span>
         </a>
-        <a id="btn-sos-nav" class="flex flex-col items-center justify-center text-error hover:text-error/80 active:scale-90 transition-transform duration-200 transform -translate-y-4 cursor-pointer">
+        <a id="btn-sos-nav" onclick="triggerEmergencyResponse('Manual SOS from Navigation')" class="flex flex-col items-center justify-center text-error hover:text-error/80 active:scale-90 transition-transform duration-200 transform -translate-y-4 cursor-pointer">
             <div class="bg-error p-3 rounded-full border-4 border-surface shadow-md">
                 <span class="material-symbols-outlined text-on-error"
                     style="font-variation-settings: 'FILL' 1;">emergency</span>
             </div>
             <span class="font-label-sm text-label-sm mt-1 text-on-surface-variant">SOS</span>
         </a>
-        <a id="btn-fakecall-mobile" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200 cursor-pointer">
+        <a onclick="document.getElementById('fake-call-overlay').classList.remove('hidden')" id="btn-fakecall-mobile" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200 cursor-pointer">
             <span class="material-symbols-outlined">phone_callback</span>
             <span class="font-label-sm text-label-sm mt-1">Fake Call</span>
         </a>
-        <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200"
-            href="#">
+        <a onclick="document.getElementById('admin-modal').classList.remove('hidden')" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform duration-200 cursor-pointer">
             <span class="material-symbols-outlined">notifications_active</span>
             <span class="font-label-sm text-label-sm mt-1">Alerts</span>
         </a>
@@ -513,13 +446,13 @@
             <p class="text-gray-400 mt-2 text-lg">Mobile</p>
         </div>
         <div class="flex justify-between w-full px-12 pb-10">
-            <div class="flex flex-col items-center cursor-pointer" id="decline-call">
+            <div onclick="document.getElementById('fake-call-overlay').classList.add('hidden')" class="flex flex-col items-center cursor-pointer" id="decline-call">
                 <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center mb-2">
                     <span class="material-symbols-outlined text-3xl">call_end</span>
                 </div>
                 <span class="text-sm">Decline</span>
             </div>
-            <div class="flex flex-col items-center cursor-pointer" id="accept-call">
+            <div onclick="document.getElementById('fake-call-overlay').classList.add('hidden')" class="flex flex-col items-center cursor-pointer" id="accept-call">
                 <div class="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mb-2 animate-bounce">
                     <span class="material-symbols-outlined text-3xl">call</span>
                 </div>
@@ -545,13 +478,32 @@
     <div id="admin-modal" class="hidden fixed inset-0 z-[90] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-surface-container-lowest rounded-xl p-8 max-w-2xl w-full shadow-2xl border border-outline-variant max-h-[80vh] flex flex-col">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="font-headline-lg text-headline-md text-on-surface">Alert History Dashboard</h2>
+                <h2 class="font-headline-lg text-headline-md text-on-surface">Intelligence Feed / Alert History</h2>
                 <button id="close-admin-modal" class="p-2 bg-surface-variant rounded-full text-on-surface"><span class="material-symbols-outlined">close</span></button>
             </div>
             <div class="overflow-y-auto flex-1 space-y-4" id="admin-history-list">
                 <!-- Populated by JS -->
             </div>
             <button id="clear-history" class="mt-6 py-2 text-error font-bold border border-error rounded-lg w-full hover:bg-error-container transition-colors">Clear History</button>
+        </div>
+    </div>
+
+    <!-- Guardian Circle Modal -->
+    <div id="guardian-modal" class="hidden fixed inset-0 z-[90] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-surface-container-lowest rounded-xl p-8 max-w-2xl w-full shadow-2xl border border-outline-variant max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-3">
+                    <span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">shield_with_heart</span>
+                    <h2 class="font-headline-lg text-headline-md text-on-surface">Guardian Circle</h2>
+                </div>
+                <button onclick="document.getElementById('guardian-modal').classList.add('hidden')" class="p-2 bg-surface-variant rounded-full text-on-surface"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div id="contacts-container" class="overflow-y-auto flex-1 space-y-4 custom-scrollbar pr-2">
+                <!-- Populated by JS -->
+            </div>
+            <button id="btn-add-contact" class="mt-6 py-3 bg-primary text-on-primary font-bold rounded-lg w-full flex items-center justify-center hover:opacity-90 transition-opacity">
+                <span class="material-symbols-outlined mr-2">person_add</span> Add New Contact
+            </button>
         </div>
     </div>
 
@@ -1977,10 +1929,12 @@
             const msg = document.getElementById('settings-saved-msg');
             if(msg) { msg.classList.remove('hidden'); setTimeout(() => msg.classList.add('hidden'), 3000); }
 
-            // Update sidebar name if provided
+            // Update sidebar and dropdown name if provided
             if(s.name) {
                 const nameEl = document.getElementById('user-display-name');
+                const topEl = document.getElementById('top-dropdown-name');
                 if(nameEl) nameEl.textContent = s.name;
+                if(topEl) topEl.textContent = s.name;
             }
         });
 
@@ -2020,6 +1974,13 @@
             window._activeCountdown  = s.countdown;
             window._sirenEnabled     = s.siren;
 
+            if(s.name) {
+                const nameEl = document.getElementById('user-display-name');
+                const topEl = document.getElementById('top-dropdown-name');
+                if(nameEl) nameEl.textContent = s.name;
+                if(topEl) topEl.textContent = s.name;
+            }
+
             // Start backend sync
             syncBackendRisk();
             setInterval(syncBackendRisk, 30000); // Sync every 30s
@@ -2029,4 +1990,4 @@
     </script>
 </body>
 </html>
-
+
