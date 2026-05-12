@@ -1430,19 +1430,16 @@
                 let transcript = "";
                 let isFinal = false;
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    transcript += event.results[i][0].transcript;
-                    if (event.results[i].isFinal) isFinal = true;
+                    transcript += event.results[i][0].transcript.toLowerCase();
                 }
-                transcript = transcript.trim().toLowerCase();
                 
-                // 1. Keyword & Emotion checks (SUPER FAST - Runs instantly as you speak)
+                // 1. Instant Keyword Detection (Runs even as you are speaking)
                 const defaultKeywords = ['help me', "i'm not safe", 'im not safe', 'emergency', 'help', 'kapadandi','bachav','police'];
                 const keywords = window._activeKeywords && window._activeKeywords.length > 0 ? window._activeKeywords : defaultKeywords;
-                const hurryEmotions = ['hurry', 'quick', 'fast', 'now', 'please hurry', 'running','please help'];
-                const sadEmotions = ['sad', 'crying', 'scared', 'terrified', 'afraid'];
                 
+                // TRIGGER INSTANTLY if any keyword appears in the live transcript
                 let isDanger = keywords.some(k => transcript.includes(k));
-                let reason = "Emergency Keyword used.";
+                let reason = "Instant Voice SOS Triggered.";
 
                 if (!isDanger) {
                     if (hurryEmotions.some(k => transcript.includes(k))) {
