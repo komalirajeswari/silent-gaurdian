@@ -1458,6 +1458,13 @@
                 }
 
                 if (isDanger) {
+                    // Send to backend for AI logging/analysis
+                    fetch('http://127.0.0.1:5000/api/voice-sos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ transcript, reason, timestamp: new Date().toISOString() })
+                    }).catch(e => console.log("Backend Voice-SOS log failed", e));
+
                     // Trigger INSTANTLY without waiting for the sentence to finish
                     triggerEmergencyResponse(`Voice AI Auto-Trigger: ${reason}`);
                     return; 
@@ -1575,6 +1582,20 @@
             if(sosActive) return; // Don't double-trigger
             sosActive = true;
             saveAlert('Emergency', reason);
+
+            // Notify Backend
+            if (window.currentLocation) {
+                fetch('http://127.0.0.1:5000/api/emergency-response', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reason: reason,
+                        lat: window.currentLocation.lat,
+                        lng: window.currentLocation.lng,
+                        timestamp: new Date().toISOString()
+                    })
+                }).catch(e => console.log("Backend SOS notification failed", e));
+            }
 
             // --- STEP 1: Flash the screen red ---
             document.body.classList.add('bg-error-container');
@@ -1967,6 +1988,29 @@
             }
         });
 
+        // ===== BACKEND API CONNECTION =====
+        const syncBackendRisk = async () => {
+            try {
+                const res = await fetch('http://127.0.0.1:5000/api/risk-detection');
+                const data = await res.json();
+                
+                if (data && data.risk_level) {
+                    const levelEl = document.getElementById('risk-level-text');
+                    const reasonEl = document.getElementById('risk-reason-text');
+                    
+                    if (levelEl) {
+                        levelEl.textContent = data.risk_level;
+                        levelEl.className = 'font-label-md text-label-md ' + 
+                            (data.risk_level.toLowerCase().includes('high') ? 'text-error' : 
+                             data.risk_level.toLowerCase().includes('medium') ? 'text-secondary' : 'text-primary');
+                    }
+                    if (reasonEl) reasonEl.textContent = data.reason || 'AI Analysis complete.';
+                }
+            } catch (e) {
+                console.warn("Backend Risk AI connection failed. Running in local-only mode.", e);
+            }
+        };
+
         // Load settings on page start and apply to live vars
         (function initSettings() {
             const s = getSettings();
@@ -1976,6 +2020,10 @@
             window._activeSensitivity = s.sensitivity;
             window._activeCountdown  = s.countdown;
             window._sirenEnabled     = s.siren;
+
+            // Start backend sync
+            syncBackendRisk();
+            setInterval(syncBackendRisk, 30000); // Sync every 30s
         })();
         // ===== END SETTINGS MODAL =====
 
