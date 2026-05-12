@@ -847,11 +847,12 @@
         const updateBotStatus = () => {
             const statusEl = document.getElementById('telegram-bot-status');
             const dotHealth = document.getElementById('status-telegram');
-            if (TELEGRAM_BOT_TOKEN && TELEGRAM_BOT_TOKEN !== "PASTE_YOUR_BOT_TOKEN_HERE") {
-                statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Telegram: Bot Active';
+            const currentToken = window._activeBotToken || TELEGRAM_BOT_TOKEN;
+            if (currentToken && currentToken !== "PASTE_YOUR_BOT_TOKEN_HERE") {
+                if(statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Telegram: Bot Active';
                 if(dotHealth) dotHealth.classList.replace('bg-error', 'bg-green-500');
             } else {
-                statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-error mr-2"></span> Telegram: Setup Needed';
+                if(statusEl) statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-error mr-2"></span> Telegram: Setup Needed';
                 if(dotHealth) dotHealth.classList.replace('bg-green-500', 'bg-error');
             }
         };
@@ -1213,7 +1214,8 @@
             const c = contacts[index];
             
             // Try Telegram first
-            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            const botTokenToUse = window._activeBotToken || TELEGRAM_BOT_TOKEN;
+            fetch(`https://api.telegram.org/bot${botTokenToUse}/sendMessage`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ chat_id: c.phone, text: "🚨 TEST ALERT from Silent Guardian! 🚨" })
@@ -1335,53 +1337,71 @@
         let audioChunks = [];
 
         // Setup MediaRecorder for 10s audio capture
-        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                
-                // 1. Local Download as backup
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `emergency_recording_${Date.now()}.webm`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+        const initMediaRecorder = () => {
+            if (mediaRecorder) return Promise.resolve();
+            return navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    
+                    // 1. Local Download as backup
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `emergency_recording_${Date.now()}.webm`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
 
-                // 2. Upload Audio to Telegram (Advanced Requirement)
-                const botToken = window._activeBotToken || TELEGRAM_BOT_TOKEN;
-                const chatId = window._activeChatId || TELEGRAM_CHAT_ID;
-                
-                if (botToken && botToken !== "PASTE_YOUR_BOT_TOKEN_HERE") {
-                    const formData = new FormData();
-                    formData.append('chat_id', chatId);
-                    formData.append('voice', blob, 'emergency_evidence.webm');
-                    formData.append('caption', "🚨 Emergency Audio Evidence Captured 🚨");
+                    // 2. Upload Audio to Telegram (Advanced Requirement)
+                    const botToken = window._activeBotToken || TELEGRAM_BOT_TOKEN;
+                    const chatId = window._activeChatId || TELEGRAM_CHAT_ID;
+                    
+                    if (botToken && botToken !== "PASTE_YOUR_BOT_TOKEN_HERE") {
+                        const formData = new FormData();
+                        formData.append('chat_id', chatId);
+                        formData.append('voice', blob, 'emergency_evidence.webm');
+                        formData.append('caption', "🚨 Emergency Audio Evidence Captured 🚨");
 
-                    fetch(`https://api.telegram.org/bot${botToken}/sendVoice`, {
-                        method: 'POST',
-                        body: formData
-                    }).then(res => {
-                        if(res.ok) console.log("Audio sent to Telegram successfully");
-                    }).catch(err => console.log("Telegram Audio Upload Failed", err));
-                }
+                        fetch(`https://api.telegram.org/bot${botToken}/sendVoice`, {
+                            method: 'POST',
+                            body: formData
+                        }).then(res => {
+                            if(res.ok) console.log("Audio sent to Telegram successfully");
+                        }).catch(err => console.log("Telegram Audio Upload Failed", err));
+                    }
 
-                audioChunks = [];
-            };
-        }).catch(err => console.log("Mic access denied for MediaRecorder"));
+                    audioChunks = [];
+                };
+            }).catch(err => {
+                console.log("Mic access denied for MediaRecorder", err);
+                updateHealth('status-mic', false);
+            });
+        };
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true; // Crucial for instant detection
-            recognition.lang = 'en-US';
+            recognition.lang = 'en-IN'; // Optimized for Indian English/Accents
 
             recognition.onend = () => {
                 // Automatically restart listening if it was turned on
                 if(isListening) {
-                    recognition.start();
+                    try { recognition.start(); } catch(e) { console.log("Recognition restart failed", e); }
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.warn("Speech Recognition Error:", event.error);
+                if(event.error === 'not-allowed') {
+                    updateHealth('status-mic', false);
+                    isListening = false;
+                }
+                // Silently attempt restart for transient errors (like network/no-speech)
+                if(isListening && event.error !== 'not-allowed') {
+                    setTimeout(() => { if(isListening) try { recognition.start(); } catch(e){} }, 400);
                 }
             };
 
@@ -1390,7 +1410,9 @@
                 let transcript = "";
                 let isFinal = false;
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    transcript += event.results[i][0].transcript.toLowerCase();
+                    const result = event.results[i][0].transcript.toLowerCase();
+                    transcript += result;
+                    if(event.results[i].isFinal) isFinal = true;
                 }
                 
                 // 1. Instant Keyword Detection (Runs even as you are speaking)
@@ -1464,13 +1486,18 @@
             }
         };
 
-        // Try to start immediately on load
-        setTimeout(startListeningAutomatically, 1000);
+        // Start listening automatically ONLY after interaction
+        // Removed the naked setTimeout to prevent browser blocking.
 
         // Fallback: Start automatically on the very first click ANYWHERE on the page
-        // (Browsers sometimes require a click before allowing microphone access)
-        document.body.addEventListener('click', () => {
+        // (Browsers strictly require a click before allowing microphone/sensor access)
+        document.body.addEventListener('click', async () => {
+            console.log("User interaction detected. Initializing safety sensors...");
+            
+            // Initialize both Audio components
+            await initMediaRecorder();
             startListeningAutomatically();
+            
             updateHealth('status-mic', true);
             
             // 🚨 MOBILE SENSOR PERMISSION (For iOS/Modern Browsers)
@@ -1917,8 +1944,8 @@
 
             // Apply live to the app
             // 1. Update Telegram credentials live
-            window._activeBotToken = s.botToken;
-            window._activeChatId   = s.chatId;
+            window._activeBotToken = s.botToken || TELEGRAM_BOT_TOKEN;
+            window._activeChatId   = s.chatId || TELEGRAM_CHAT_ID;
             updateBotStatus();
 
             // 2. Apply keywords to voice recognition
@@ -1990,8 +2017,8 @@
         // Load settings on page start and apply to live vars
         (function initSettings() {
             const s = getSettings();
-            window._activeBotToken   = s.botToken;
-            window._activeChatId     = s.chatId;
+            window._activeBotToken   = s.botToken || TELEGRAM_BOT_TOKEN;
+            window._activeChatId     = s.chatId || TELEGRAM_CHAT_ID;
             window._activeKeywords   = s.keywords.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
             window._activeSensitivity = s.sensitivity;
             window._activeCountdown  = s.countdown;
