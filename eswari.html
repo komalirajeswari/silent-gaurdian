@@ -278,48 +278,34 @@
             <!-- Hero / Map Section (Bento Grid Style) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-lg">
                 <!-- Map Card -->
-                <div
-                    class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative h-[400px] shadow-sm">
-                    <div class="absolute inset-0 bg-surface/80 z-10 flex items-center justify-center backdrop-blur-sm">
-                        <!-- Simulated Map Image -->
-                        <!-- Embedded Map -->
-                        <div id="live-map" class="absolute inset-0 w-full h-full z-0"></div>
-                        <div class="z-20 w-full h-full p-stack-md flex flex-col justify-between pointer-events-none">
-                            <div class="flex justify-between items-start">
-                                <div
-                                    class="bg-surface/90 backdrop-blur-md px-4 py-2 rounded-lg border border-outline-variant shadow-sm flex items-center space-x-stack-sm">
-                                    <span class="material-symbols-outlined text-primary text-sm">my_location</span>
-                                    <span class="font-label-sm text-label-sm text-on-surface">Tracking Active</span>
-                                </div>
-                                <div
-                                    class="bg-surface/90 backdrop-blur-md px-4 py-2 rounded-lg border border-outline-variant shadow-sm flex items-center space-x-stack-sm">
-                                    <span class="material-symbols-outlined text-secondary text-sm">wifi_tethering</span>
-                                    <span class="font-label-sm text-label-sm text-on-surface">Signal Strong</span>
-                                </div>
+                <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative h-[450px] shadow-sm">
+                    <!-- The map fills the ENTIRE card -->
+                    <div id="live-map" class="absolute inset-0 w-full h-full z-0"></div>
+
+                    <!-- Floating chips on top of map (pointer-events-none so map is still interactive) -->
+                    <div class="absolute inset-0 z-10 p-3 flex flex-col justify-between pointer-events-none">
+                        <!-- Top row: status badges -->
+                        <div class="flex justify-between items-start">
+                            <div class="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center space-x-2 shadow">
+                                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                                <span class="text-xs font-semibold text-white">Live Tracking</span>
                             </div>
-                            <!-- Safe Zone Indicator on Map -->
-                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                <div
-                                    class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center relative">
-                                    <div class="absolute inset-0 rounded-full border border-primary/30"></div>
-                                    <div class="w-4 h-4 bg-primary rounded-full shadow-[0_0_10px_rgba(46,49,146,0.5)]">
-                                    </div>
-                                </div>
+                            <div class="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center space-x-2 shadow">
+                                <span class="material-symbols-outlined text-secondary text-sm">wifi_tethering</span>
+                                <span class="text-xs font-semibold text-white">Signal Strong</span>
                             </div>
-                            <div
-                                class="bg-surface-container/90 backdrop-blur-lg p-stack-md rounded-xl border border-outline-variant flex items-center justify-between shadow-sm">
-                                <div>
-                                    <h3 class="font-label-md text-label-md text-on-surface">Current Location</h3>
-                                    <p class="font-body-md text-body-md text-on-surface-variant">42.3601° N, 71.0589° W
-                                    </p>
-                                </div>
-                                <button class="p-2 bg-primary-container text-on-primary-container rounded-lg">
-                                    <span class="material-symbols-outlined">directions</span>
-                                </button>
+                        </div>
+                        <!-- Bottom row: coordinates bar -->
+                        <div class="bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl flex items-center justify-between shadow">
+                            <div>
+                                <p class="text-[10px] text-white/60 uppercase tracking-widest">Current Location</p>
+                                <p id="current-location-text" class="text-xs font-mono text-white font-bold">Acquiring GPS...</p>
                             </div>
+                            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">my_location</span>
                         </div>
                     </div>
                 </div>
+
                 <!-- Right Column (AI & Toggles) -->
                 <div class="space-y-stack-lg flex flex-col justify-between">
                     <!-- Risk AI Widget -->
@@ -605,12 +591,24 @@
         });
 
         // Map & Location Initialization (Leaflet with Google Maps Tiles)
-        let map = L.map('live-map').setView([40.7128, -74.0060], 13);
-        L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-            maxZoom: 20,
-            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-            attribution: '© Google Maps'
+        let map = L.map('live-map', { zoomControl: true }).setView([20.5937, 78.9629], 5);
+        // Use OpenStreetMap tiles - always reliable, no API key needed
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
+        // Add "Center on Me" button to map
+        const centerBtn = L.control({ position: 'bottomright' });
+        centerBtn.onAdd = () => {
+            const btn = L.DomUtil.create('button', '');
+            btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;">my_location</span>';
+            btn.title = 'Center on my location';
+            btn.style.cssText = 'background:#fff;border:2px solid rgba(0,0,0,0.2);border-radius:8px;padding:6px 8px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;';
+            btn.onclick = () => { if(window.currentLocation) map.setView([window.currentLocation.lat, window.currentLocation.lng], 16); };
+            return btn;
+        };
+        centerBtn.addTo(map);
 
         let marker = null;
         let hasTriggeredRiskSOS = false;
@@ -769,53 +767,94 @@
             let isFirstLocation = true;
             let userMarker = null;
             let userPulse = null;
+            let locationWatcher = null;
 
-            navigator.geolocation.watchPosition((position) => {
+            // Show a loading indicator on the map while waiting for GPS
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'map-loading';
+            loadingDiv.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999;background:rgba(0,0,0,0.7);color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;display:flex;align-items:center;gap:8px;';
+            loadingDiv.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block;">⏳</span> Getting your live location...';
+            document.getElementById('live-map').style.position = 'relative';
+            document.getElementById('live-map').appendChild(loadingDiv);
+
+            const onLocationSuccess = (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
+                const accuracy = Math.round(position.coords.accuracy);
                 window.currentLocation = {lat, lng};
-                
+
+                // Remove loading indicator
+                const loader = document.getElementById('map-loading');
+                if(loader) loader.remove();
+
+                updateHealth('status-geo', true);
+
                 if (isFirstLocation) {
-                    updateHealth('status-geo', true);
-                    map.setView([lat, lng], 14);
-                    
-                    // Live Location Blue Marker
+                    map.setView([lat, lng], 16);
+
+                    // Pulsing blue dot for user location
                     userMarker = L.circleMarker([lat, lng], {
-                        radius: 8,
-                        fillColor: "#007bff", // Blue
-                        color: "#ffffff",
-                        weight: 2,
+                        radius: 9,
+                        fillColor: '#1a73e8',
+                        color: '#ffffff',
+                        weight: 3,
                         opacity: 1,
                         fillOpacity: 1
-                    }).addTo(map);
-                    
-                    // Blue pulse ring
+                    }).bindPopup(`<b>📍 You are here</b><br>Accuracy: ~${accuracy}m`).addTo(map).openPopup();
+
+                    // Accuracy circle
                     userPulse = L.circle([lat, lng], {
-                        radius: 100,
-                        color: '#007bff',
-                        fillColor: '#007bff',
-                        fillOpacity: 0.1,
-                        weight: 1
+                        radius: Math.min(accuracy, 200),
+                        color: '#1a73e8',
+                        fillColor: '#1a73e8',
+                        fillOpacity: 0.12,
+                        weight: 1.5
                     }).addTo(map);
-                    
-                    // Run Risk AI Analysis on the area only once initially
+
+                    // Update location text in sidebar if element exists
+                    const locEl = document.getElementById('current-location-text');
+                    if(locEl) locEl.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
                     analyzeAreaRisk(lat, lng);
                     isFirstLocation = false;
                 } else {
-                    // Continuously update the marker as the user moves
                     userMarker.setLatLng([lat, lng]);
                     userPulse.setLatLng([lat, lng]);
+                    userPulse.setRadius(Math.min(accuracy, 200));
+                    const locEl = document.getElementById('current-location-text');
+                    if(locEl) locEl.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
                 }
-            }, () => {
-                if (isFirstLocation) {
-                    console.log("Location access denied. Using default location.");
-                    window.currentLocation = {lat: 40.7128, lng: -74.0060};
+            };
+
+            const onLocationError = (err) => {
+                const loader = document.getElementById('map-loading');
+                if(loader) {
+                    loader.innerHTML = `❌ Location Error: ${err.message}. <br>Please allow location access in your browser.`;
+                    loader.style.background = 'rgba(200,0,0,0.8)';
+                    setTimeout(() => { if(loader) loader.remove(); }, 5000);
                 }
-            }, {
+                // Fallback: Center on India
+                if(isFirstLocation) {
+                    window.currentLocation = {lat: 20.5937, lng: 78.9629};
+                    console.warn('Geolocation error:', err.message);
+                }
+            };
+
+            const geoOptions = {
                 enableHighAccuracy: true,
-                maximumAge: 10000,
-                timeout: 5000
-            });
+                maximumAge: 5000,
+                timeout: 20000  // Give 20 seconds before giving up
+            };
+
+            // First: get a quick fix
+            navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, geoOptions);
+
+            // Then: keep watching for updates
+            locationWatcher = navigator.geolocation.watchPosition(onLocationSuccess, onLocationError, geoOptions);
+
+        } else {
+            console.warn('Geolocation not supported by this browser.');
+            window.currentLocation = {lat: 20.5937, lng: 78.9629};
         }
 
         // Sensor-based Abnormal Activity Detection (Running / Struggle)
